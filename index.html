@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Femi By Jojo - Inventory Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 60px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.2em;
+            color: #6c757d;
+            margin-bottom: 40px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 20px 40px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102,126,234,0.4);
+        }
+
+        .features {
+            margin-top: 50px;
+            text-align: left;
+        }
+
+        .features h2 {
+            color: #343a40;
+            margin-bottom: 20px;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feature-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .feature-item strong {
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Femi By Jojo</h1>
+        <p>Inventory Management System</p>
+
+        <div class="buttons">
+            <a href="inventory-manager-wix.html" class="btn btn-primary">
+                Wix-Integrated Manager
+            </a>
+            <a href="inventory-manager.html" class="btn btn-secondary">
+                Basic Manager
+            </a>
+        </div>
+
+        <div class="features">
+            <h2>Choose Your Manager:</h2>
+
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: #667eea; margin-bottom: 10px;">Wix-Integrated Manager</h3>
+                <p style="font-size: 1em; margin-bottom: 15px;">Full-featured with Wix API synchronization</p>
+                <div class="feature-list">
+                    <div class="feature-item"><strong>✓</strong> Sync to Wix Store</div>
+                    <div class="feature-item"><strong>✓</strong> Bulk Updates</div>
+                    <div class="feature-item"><strong>✓</strong> Real-time Status</div>
+                    <div class="feature-item"><strong>✓</strong> Error Logging</div>
+                    <div class="feature-item"><strong>✓</strong> CSV Import/Export</div>
+                    <div class="feature-item"><strong>✓</strong> Product Management</div>
+                </div>
+            </div>
+
+            <div>
+                <h3 style="color: #f5576c; margin-bottom: 10px;">Basic Manager</h3>
+                <p style="font-size: 1em; margin-bottom: 15px;">Standalone inventory management (no Wix integration)</p>
+                <div class="feature-list">
+                    <div class="feature-item"><strong>✓</strong> CSV Import/Export</div>
+                    <div class="feature-item"><strong>✓</strong> Search & Filter</div>
+                    <div class="feature-item"><strong>✓</strong> Edit Products</div>
+                    <div class="feature-item"><strong>✓</strong> Sort & Paginate</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
