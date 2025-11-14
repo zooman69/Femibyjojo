@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Femi By Jojo - Inventory Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.2);
+            padding: 15px 25px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-card .number {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .stat-card .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+
+        select, button {
+            padding: 12px 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: bold;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .file-upload {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            padding: 12px 20px;
+            background: #28a745;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .file-label:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            background: #343a40;
+            color: white;
+            z-index: 10;
+        }
+
+        th {
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        th:hover {
+            background: #495057;
+        }
+
+        th.sortable::after {
+            content: ' ⇅';
+            opacity: 0.3;
+        }
+
+        th.sorted-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+
+        th.sorted-desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        tbody tr {
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .product-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .visible-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .visible-true {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .visible-false {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .price {
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .edit-btn, .delete-btn {
+            padding: 6px 12px;
+            margin: 2px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .edit-btn {
+            background: #007bff;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background: #0056b3;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            min-width: 40px;
+        }
+
+        .pagination .page-info {
+            font-size: 14px;
+            color: #495057;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            width: 100%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .modal-header h2 {
+            color: #343a40;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            color: #6c757d;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+        }
+
+        .close-btn:hover {
+            color: #dc3545;
+            transform: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .control-row {
+                flex-direction: column;
+            }
+
+            .search-box {
+                min-width: 100%;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 8px 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Femi By Jojo - Inventory Manager</h1>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="number" id="totalProducts">0</div>
+                    <div class="label">Total Products</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="visibleProducts">0</div>
+                    <div class="label">Visible Products</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="totalValue">$0</div>
+                    <div class="label">Total Inventory Value</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="controls">
+            <div class="control-row">
+                <div class="file-upload">
+                    <input type="file" id="csvFile" accept=".csv">
+                    <label for="csvFile" class="file-label">Load CSV File</label>
+                    <span id="fileName"></span>
+                </div>
+                <button onclick="exportToCSV()">Export to CSV</button>
+                <button onclick="addNewProduct()">Add New Product</button>
+            </div>
+            <div class="control-row">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search by name, SKU, collection..." oninput="filterTable()">
+                </div>
+                <select id="collectionFilter" onchange="filterTable()">
+                    <option value="">All Collections</option>
+                </select>
+                <select id="visibilityFilter" onchange="filterTable()">
+                    <option value="">All Visibility</option>
+                    <option value="TRUE">Visible Only</option>
+                    <option value="FALSE">Hidden Only</option>
+                </select>
+                <select id="itemsPerPage" onchange="changeItemsPerPage()">
+                    <option value="25">25 per page</option>
+                    <option value="50">50 per page</option>
+                    <option value="100">100 per page</option>
+                    <option value="all">Show All</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="inventoryTable">
+                <thead>
+                    <tr id="tableHeader"></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Edit Product</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="editForm">
+                <div id="formFields"></div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeModal()" style="background: #6c757d;">Cancel</button>
+                    <button type="submit">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let allProducts = [];
+        let filteredProducts = [];
+        let currentPage = 1;
+        let itemsPerPage = 25;
+        let sortColumn = null;
+        let sortDirection = 'asc';
+        let currentEditIndex = null;
+        let headers = [];
+
+        // Load CSV file
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileName').textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    parseCSV(e.target.result);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Parse CSV data
+        function parseCSV(csv) {
+            const lines = csv.split('\n');
+            if (lines.length === 0) return;
+
+            // Remove BOM if present
+            const firstLine = lines[0].replace(/^\ufeff/, '');
+            headers = firstLine.split(',').map(h => h.trim());
+
+            allProducts = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim() === '') continue;
+
+                const values = parseCSVLine(lines[i]);
+                if (values.length > 0) {
+                    const product = {};
+                    headers.forEach((header, index) => {
+                        product[header] = values[index] || '';
+                    });
+                    allProducts.push(product);
+                }
+            }
+
+            populateFilters();
+            filterTable();
+            updateStats();
+            renderTable();
+        }
+
+        // Parse a CSV line handling quoted values
+        function parseCSVLine(line) {
+            const values = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    values.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            values.push(current.trim());
+            return values;
+        }
+
+        // Populate filter dropdowns
+        function populateFilters() {
+            const collections = new Set();
+            allProducts.forEach(product => {
+                if (product.collection) {
+                    collections.add(product.collection);
+                }
+            });
+
+            const collectionFilter = document.getElementById('collectionFilter');
+            collectionFilter.innerHTML = '<option value="">All Collections</option>';
+            Array.from(collections).sort().forEach(collection => {
+                const option = document.createElement('option');
+                option.value = collection;
+                option.textContent = collection;
+                collectionFilter.appendChild(option);
+            });
+        }
+
+        // Filter table
+        function filterTable() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const collectionFilter = document.getElementById('collectionFilter').value;
+            const visibilityFilter = document.getElementById('visibilityFilter').value;
+
+            filteredProducts = allProducts.filter(product => {
+                const matchesSearch = !searchTerm ||
+                    (product.name && product.name.toLowerCase().includes(searchTerm)) ||
+                    (product.sku && product.sku.toLowerCase().includes(searchTerm)) ||
+                    (product.collection && product.collection.toLowerCase().includes(searchTerm));
+
+                const matchesCollection = !collectionFilter || product.collection === collectionFilter;
+                const matchesVisibility = !visibilityFilter || product.visible === visibilityFilter;
+
+                return matchesSearch && matchesCollection && matchesVisibility;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        // Sort table
+        function sortTable(column) {
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = 'asc';
+            }
+
+            filteredProducts.sort((a, b) => {
+                let aVal = a[column] || '';
+                let bVal = b[column] || '';
+
+                // Handle numeric values
+                if (column === 'price' || column === 'cost' || column === 'inventory' || column === 'weight') {
+                    aVal = parseFloat(aVal) || 0;
+                    bVal = parseFloat(bVal) || 0;
+                }
+
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            renderTable();
+        }
+
+        // Render table
+        function renderTable() {
+            if (allProducts.length === 0) {
+                document.getElementById('tableHeader').innerHTML = '';
+                document.getElementById('tableBody').innerHTML = `
+                    <tr><td colspan="100" class="empty-state">
+                        <h3>No products loaded</h3>
+                        <p>Please load a CSV file to begin managing your inventory</p>
+                    </td></tr>
+                `;
+                return;
+            }
+
+            // Render header
+            const headerRow = document.getElementById('tableHeader');
+            const displayColumns = ['productImageUrl', 'name', 'collection', 'sku', 'price', 'inventory', 'visible', 'actions'];
+            const columnLabels = {
+                'productImageUrl': 'Image',
+                'name': 'Product Name',
+                'collection': 'Collection',
+                'sku': 'SKU',
+                'price': 'Price',
+                'inventory': 'Stock',
+                'visible': 'Status',
+                'actions': 'Actions'
+            };
+
+            headerRow.innerHTML = displayColumns.map(col => {
+                if (col === 'actions') {
+                    return `<th>${columnLabels[col]}</th>`;
+                }
+                const sorted = sortColumn === col ? (sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc') : '';
+                return `<th class="sortable ${sorted}" onclick="sortTable('${col}')">${columnLabels[col]}</th>`;
+            }).join('');
+
+            // Pagination
+            const start = itemsPerPage === 'all' ? 0 : (currentPage - 1) * itemsPerPage;
+            const end = itemsPerPage === 'all' ? filteredProducts.length : start + itemsPerPage;
+            const paginatedProducts = filteredProducts.slice(start, end);
+
+            // Render body
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = paginatedProducts.map((product, index) => {
+                const actualIndex = start + index;
+                const imageUrl = product.productImageUrl ?
+                    `https://static.wixstatic.com/media/${product.productImageUrl}` : '';
+
+                return `
+                    <tr>
+                        <td>
+                            ${imageUrl ? `<img src="${imageUrl}" class="product-image" alt="${product.name}" onclick="showImageModal('${imageUrl}')">` : '-'}
+                        </td>
+                        <td><strong>${product.name || '-'}</strong></td>
+                        <td>${product.collection || '-'}</td>
+                        <td>${product.sku || '-'}</td>
+                        <td class="price">$${parseFloat(product.price || 0).toFixed(2)}</td>
+                        <td>${product.inventory || 0}</td>
+                        <td><span class="visible-badge visible-${product.visible?.toLowerCase()}">${product.visible === 'TRUE' ? 'Visible' : 'Hidden'}</span></td>
+                        <td>
+                            <button class="edit-btn" onclick="editProduct(${actualIndex})">Edit</button>
+                            <button class="delete-btn" onclick="deleteProduct(${actualIndex})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            renderPagination();
+        }
+
+        // Render pagination
+        function renderPagination() {
+            if (itemsPerPage === 'all') {
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+
+            const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+            const pagination = document.getElementById('pagination');
+
+            pagination.innerHTML = `
+                <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>
+                <span class="page-info">Page ${currentPage} of ${totalPages} (${filteredProducts.length} products)</span>
+                <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
+            `;
+        }
+
+        // Change page
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderTable();
+        }
+
+        // Change items per page
+        function changeItemsPerPage() {
+            const value = document.getElementById('itemsPerPage').value;
+            itemsPerPage = value === 'all' ? 'all' : parseInt(value);
+            currentPage = 1;
+            renderTable();
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalProducts').textContent = allProducts.length;
+
+            const visibleCount = allProducts.filter(p => p.visible === 'TRUE').length;
+            document.getElementById('visibleProducts').textContent = visibleCount;
+
+            const totalValue = allProducts.reduce((sum, p) => {
+                const price = parseFloat(p.price || 0);
+                const inventory = parseInt(p.inventory || 0);
+                return sum + (price * inventory);
+            }, 0);
+            document.getElementById('totalValue').textContent = '$' + totalValue.toFixed(2);
+        }
+
+        // Edit product
+        function editProduct(index) {
+            currentEditIndex = index;
+            const product = filteredProducts[index];
+
+            document.getElementById('modalTitle').textContent = 'Edit Product';
+
+            const importantFields = ['name', 'collection', 'sku', 'price', 'cost', 'inventory', 'visible', 'ribbon', 'weight', 'brand'];
+
+            const formFields = document.getElementById('formFields');
+            formFields.innerHTML = importantFields.map(field => {
+                const value = product[field] || '';
+
+                if (field === 'visible') {
+                    return `
+                        <div class="form-group">
+                            <label>${field}</label>
+                            <select name="${field}">
+                                <option value="TRUE" ${value === 'TRUE' ? 'selected' : ''}>Visible</option>
+                                <option value="FALSE" ${value === 'FALSE' ? 'selected' : ''}>Hidden</option>
+                            </select>
+                        </div>
+                    `;
+                } else {
+                    const inputType = ['price', 'cost', 'weight'].includes(field) ? 'number' :
+                                     field === 'inventory' ? 'number' : 'text';
+                    const step = ['price', 'cost', 'weight'].includes(field) ? '0.01' : '1';
+
+                    return `
+                        <div class="form-group">
+                            <label>${field}</label>
+                            <input type="${inputType}" name="${field}" value="${value}" ${inputType === 'number' ? `step="${step}"` : ''}>
+                        </div>
+                    `;
+                }
+            }).join('');
+
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        // Add new product
+        function addNewProduct() {
+            currentEditIndex = -1;
+            document.getElementById('modalTitle').textContent = 'Add New Product';
+
+            const newProduct = {
+                handleId: `product_${Date.now()}`,
+                fieldType: 'Product',
+                name: '',
+                collection: '',
+                sku: '',
+                price: '',
+                cost: '',
+                inventory: '0',
+                visible: 'TRUE',
+                ribbon: '',
+                weight: '',
+                brand: 'Femi By Jojo'
+            };
+
+            const formFields = document.getElementById('formFields');
+            formFields.innerHTML = Object.keys(newProduct).map(field => {
+                if (field === 'handleId' || field === 'fieldType') {
+                    return `<input type="hidden" name="${field}" value="${newProduct[field]}">`;
+                }
+
+                if (field === 'visible') {
+                    return `
+                        <div class="form-group">
+                            <label>${field}</label>
+                            <select name="${field}">
+                                <option value="TRUE" selected>Visible</option>
+                                <option value="FALSE">Hidden</option>
+                            </select>
+                        </div>
+                    `;
+                } else {
+                    const inputType = ['price', 'cost', 'weight'].includes(field) ? 'number' :
+                                     field === 'inventory' ? 'number' : 'text';
+                    const step = ['price', 'cost', 'weight'].includes(field) ? '0.01' : '1';
+
+                    return `
+                        <div class="form-group">
+                            <label>${field}</label>
+                            <input type="${inputType}" name="${field}" value="${newProduct[field]}" ${inputType === 'number' ? `step="${step}"` : ''}>
+                        </div>
+                    `;
+                }
+            }).join('');
+
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('active');
+            currentEditIndex = null;
+        }
+
+        // Handle form submission
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            if (currentEditIndex === -1) {
+                // Add new product
+                const newProduct = {};
+                headers.forEach(header => {
+                    newProduct[header] = formData.get(header) || '';
+                });
+                allProducts.push(newProduct);
+            } else {
+                // Update existing product
+                const product = filteredProducts[currentEditIndex];
+                formData.forEach((value, key) => {
+                    product[key] = value;
+                });
+            }
+
+            closeModal();
+            filterTable();
+            updateStats();
+        });
+
+        // Delete product
+        function deleteProduct(index) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                const product = filteredProducts[index];
+                const actualIndex = allProducts.indexOf(product);
+                allProducts.splice(actualIndex, 1);
+                filterTable();
+                updateStats();
+            }
+        }
+
+        // Export to CSV
+        function exportToCSV() {
+            const csvContent = [
+                headers.join(','),
+                ...allProducts.map(product => {
+                    return headers.map(header => {
+                        const value = product[header] || '';
+                        // Escape quotes and wrap in quotes if contains comma or newline
+                        if (value.includes(',') || value.includes('\n') || value.includes('"')) {
+                            return '"' + value.replace(/"/g, '""') + '"';
+                        }
+                        return value;
+                    }).join(',');
+                })
+            ].join('\n');
+
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `catalog_products_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Show image modal
+        function showImageModal(imageUrl) {
+            window.open(imageUrl, '_blank');
+        }
+
+        // Auto-load CSV if present in directory
+        window.addEventListener('DOMContentLoaded', function() {
+            // Display initial empty state
+            renderTable();
+        });
+    </script>
+</body>
+</html>
