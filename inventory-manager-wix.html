@@ -696,6 +696,38 @@
             connected: false
         };
 
+        // API proxy URL - set this to your Vercel deployment URL
+        const API_PROXY_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000/api/wix-proxy'
+            : 'https://femibyjojo.vercel.app/api/wix-proxy';
+
+        // Helper function to call Wix API through proxy
+        async function callWixAPI(endpoint, method = 'GET', body = null) {
+            const response = await fetch(API_PROXY_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    endpoint: endpoint,
+                    method: method,
+                    body: body,
+                    headers: {
+                        'authorization': wixConfig.apiKey,
+                        'wix-site-id': wixConfig.siteId,
+                        'wix-account-id': wixConfig.accountId
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || error.message || 'API request failed');
+            }
+
+            return await response.json();
+        }
+
         // Load Wix config from localStorage
         function loadWixConfig() {
             const saved = localStorage.getItem('wixConfig');
@@ -765,33 +797,25 @@
             }
 
             try {
-                // Test API connection
-                const response = await fetch(`https://www.wixapis.com/stores/v1/products/query`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': apiKey,
-                        'wix-site-id': siteId,
-                        'wix-account-id': accountId,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        query: {
-                            paging: { limit: 1 }
-                        }
-                    })
+                // Store credentials temporarily for test
+                const tempConfig = {...wixConfig};
+                wixConfig.siteId = siteId;
+                wixConfig.apiKey = apiKey;
+                wixConfig.accountId = accountId;
+
+                // Test API connection through proxy
+                const data = await callWixAPI('/stores/v1/products/query', 'POST', {
+                    query: {
+                        paging: { limit: 1 }
+                    }
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    log.innerHTML += '<div class="log-entry success">✓ Connection successful!</div>';
-                    log.innerHTML += `<div class="log-entry info">Found ${data.totalResults || 0} products in your store</div>`;
-                    showNotification('Wix connection successful!', 'success');
-                } else {
-                    const error = await response.text();
-                    log.innerHTML += `<div class="log-entry error">✗ Connection failed: ${response.status} ${response.statusText}</div>`;
-                    log.innerHTML += `<div class="log-entry error">${error}</div>`;
-                    showNotification('Wix connection failed', 'error');
-                }
+                log.innerHTML += '<div class="log-entry success">✓ Connection successful!</div>';
+                log.innerHTML += `<div class="log-entry info">Found ${data.totalResults || 0} products in your store</div>`;
+                showNotification('Wix connection successful!', 'success');
+
+                // Restore original config (will be saved when user clicks Save)
+                wixConfig = tempConfig;
             } catch (error) {
                 log.innerHTML += `<div class="log-entry error">✗ Connection error: ${error.message}</div>`;
                 showNotification('Connection error: ' + error.message, 'error');
@@ -862,67 +886,29 @@
                 // Find existing product by SKU or create new
                 let productId = null;
                 if (product.sku) {
-                    const searchResponse = await fetch(`https://www.wixapis.com/stores/v1/products/query`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': wixConfig.apiKey,
-                            'wix-site-id': wixConfig.siteId,
-                            'wix-account-id': wixConfig.accountId,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            query: {
-                                filter: JSON.stringify({ sku: product.sku })
-                            }
-                        })
+                    const searchData = await callWixAPI('/stores/v1/products/query', 'POST', {
+                        query: {
+                            filter: JSON.stringify({ sku: product.sku })
+                        }
                     });
 
-                    if (searchResponse.ok) {
-                        const searchData = await searchResponse.json();
-                        if (searchData.products && searchData.products.length > 0) {
-                            productId = searchData.products[0].id;
-                        }
+                    if (searchData.products && searchData.products.length > 0) {
+                        productId = searchData.products[0].id;
                     }
                 }
 
-                let response;
+                // Update or create product
                 if (productId) {
                     // Update existing product
-                    response = await fetch(`https://www.wixapis.com/stores/v1/products/${productId}`, {
-                        method: 'PATCH',
-                        headers: {
-                            'Authorization': wixConfig.apiKey,
-                            'wix-site-id': wixConfig.siteId,
-                            'wix-account-id': wixConfig.accountId,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ product: wixProduct })
-                    });
+                    await callWixAPI(`/stores/v1/products/${productId}`, 'PATCH', { product: wixProduct });
                 } else {
                     // Create new product
-                    response = await fetch(`https://www.wixapis.com/stores/v1/products`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': wixConfig.apiKey,
-                            'wix-site-id': wixConfig.siteId,
-                            'wix-account-id': wixConfig.accountId,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ product: wixProduct })
-                    });
+                    await callWixAPI('/stores/v1/products', 'POST', { product: wixProduct });
                 }
 
-                if (response.ok) {
-                    product.syncStatus = 'synced';
-                    product.lastSyncTime = new Date().toISOString();
-                    return true;
-                } else {
-                    const error = await response.text();
-                    console.error('Wix sync error:', error);
-                    product.syncStatus = 'error';
-                    product.syncError = error;
-                    return false;
-                }
+                product.syncStatus = 'synced';
+                product.lastSyncTime = new Date().toISOString();
+                return true;
             } catch (error) {
                 console.error('Sync error:', error);
                 product.syncStatus = 'error';
