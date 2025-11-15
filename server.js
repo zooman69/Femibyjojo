@@ -9,12 +9,18 @@ const app = express();
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Import the Wix proxy handler
+// Import API handlers
 const wixProxyHandler = require('./api/wix-proxy.js');
+const sendSmsHandler = require('./api/send-sms.js');
 
 // API route for Wix proxy
 app.all('/api/wix-proxy', async (req, res) => {
     await wixProxyHandler(req, res);
+});
+
+// API route for SMS notifications
+app.all('/api/send-sms', async (req, res) => {
+    await sendSmsHandler(req, res);
 });
 
 // Serve the main HTML file

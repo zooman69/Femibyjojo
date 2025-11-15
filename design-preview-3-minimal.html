@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Option 3: Minimal Clean (Light Gray/Blue)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding: 20px;
+            color: #2d3748;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: #4a5568;
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .wix-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #48bb78;
+        }
+
+        .controls {
+            padding: 30px;
+            background: #fafbfc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+            color: #4a5568;
+        }
+
+        button:hover {
+            background: #4a5568;
+            color: white;
+            border-color: #4a5568;
+        }
+
+        input, select {
+            padding: 10px 14px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: white;
+            color: #2d3748;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4a5568;
+            box-shadow: 0 0 0 3px rgba(74, 85, 104, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        thead {
+            background: #f7fafc;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        th {
+            padding: 14px;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        td {
+            padding: 14px;
+            color: #2d3748;
+        }
+
+        .sample-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            background: #e6fffa;
+            color: #047857;
+            border: 1px solid #ccfbf1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Femi By Jojo - Inventory Manager</h1>
+            <p style="opacity: 0.9; margin-top: 10px; font-size: 15px; font-weight: 400;">Minimal Clean Design (Light Gray/Blue)</p>
+            <div class="wix-status">
+                <div class="status-dot"></div>
+                <span style="font-size: 14px;">Connected to Wix</span>
+            </div>
+        </header>
+
+        <div class="controls">
+            <div class="control-row">
+                <button>Import from Wix</button>
+                <button>Export to CSV</button>
+                <button>Add New Product</button>
+                <button>Sync All to Wix</button>
+            </div>
+            <div class="control-row">
+                <input type="text" placeholder="Search products..." style="flex: 1; min-width: 250px;">
+                <select style="min-width: 150px;">
+                    <option>All Categories</option>
+                    <option>Drinkware</option>
+                </select>
+                <select style="min-width: 150px;">
+                    <option>All Visibility</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="padding: 0 30px 30px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>☑</th>
+                        <th>Image</th>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>SKU</th>
+                        <th>Price</th>
+                        <th>Discount</th>
+                        <th>Sale Price</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td><div style="width: 50px; height: 50px; background: #4a5568; border-radius: 6px;"></div></td>
+                        <td><strong>Sample Product</strong></td>
+                        <td>Drinkware</td>
+                        <td>SKU-001</td>
+                        <td>$29.99</td>
+                        <td style="color: #e53e3e; font-weight: 500;">$5.00</td>
+                        <td style="color: #38a169; font-weight: 600;">$24.99</td>
+                        <td>50</td>
+                        <td><span class="sample-badge">Visible</span></td>
+                        <td>
+                            <button style="padding: 6px 12px; font-size: 12px;">Edit</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td><div style="width: 50px; height: 50px; background: #718096; border-radius: 6px;"></div></td>
+                        <td><strong>Another Product</strong></td>
+                        <td>Apparel</td>
+                        <td>SKU-002</td>
+                        <td>$39.99</td>
+                        <td style="color: #e53e3e; font-weight: 500;">10%</td>
+                        <td style="color: #38a169; font-weight: 600;">$35.99</td>
+                        <td>25</td>
+                        <td><span class="sample-badge">Visible</span></td>
+                        <td>
+                            <button style="padding: 6px 12px; font-size: 12px;">Edit</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div style="text-align: center; color: #4a5568; margin-top: 20px; padding: 20px;">
+        <h2 style="margin-bottom: 10px;">Option 3: Minimal Clean (Light Gray/Blue)</h2>
+        <p style="opacity: 0.8;">Flat design • Professional corporate • Simple and clean</p>
+    </div>
+</body>
+</html>
