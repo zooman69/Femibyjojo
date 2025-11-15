@@ -1465,11 +1465,24 @@
 
                 // Convert Wix products to CSV format
                 allProducts = allWixProducts.map(wixProduct => {
+                    // Extract image URL - handle both full URLs and Wix media format
+                    let imageUrl = '';
+                    if (wixProduct.media?.mainMedia?.image?.url) {
+                        const fullUrl = wixProduct.media.mainMedia.image.url;
+                        // Extract just the filename/ID part after 'media/'
+                        const match = fullUrl.match(/media\/([^?]+)/);
+                        imageUrl = match ? match[1] : fullUrl.split('/').pop().split('?')[0];
+                    } else if (wixProduct.media?.items?.[0]?.image?.url) {
+                        const fullUrl = wixProduct.media.items[0].image.url;
+                        const match = fullUrl.match(/media\/([^?]+)/);
+                        imageUrl = match ? match[1] : fullUrl.split('/').pop().split('?')[0];
+                    }
+
                     return {
                         handleId: wixProduct.id || `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                         fieldType: 'Product',
                         name: wixProduct.name || '',
-                        productImageUrl: wixProduct.media?.mainMedia?.image?.url?.split('/').pop() || '',
+                        productImageUrl: imageUrl,
                         collection: wixProduct.collectionIds?.[0] || '',
                         sku: wixProduct.sku || '',
                         ribbon: wixProduct.ribbon || '',
