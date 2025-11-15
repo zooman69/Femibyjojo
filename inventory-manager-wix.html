@@ -915,6 +915,74 @@
             filter: brightness(0) invert(1);
         }
 
+    
+        /* 2FA Specific Styles */
+        .auth-step {
+            display: none;
+        }
+
+        .auth-step.active {
+            display: block;
+        }
+
+        .qr-code-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .qr-code-container img {
+            border: 3px solid #00d9ff;
+            border-radius: 12px;
+            padding: 10px;
+            background: white;
+            margin: 15px 0;
+        }
+
+        .secret-key {
+            background: #252525;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            color: #00d9ff;
+            word-break: break-all;
+            margin: 15px 0;
+            border: 1px solid #2a2a2a;
+        }
+
+        .instructions {
+            text-align: left;
+            background: rgba(0, 217, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 3px solid #00d9ff;
+        }
+
+        .instructions ol {
+            margin: 10px 0 10px 20px;
+            color: #a0a0a0;
+        }
+
+        .instructions ol li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .auth-form input[type="text"].code-input {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 8px;
+            font-family: monospace;
+        }
+
+        .auth-subtitle {
+            color: #a0a0a0;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
     </style>
 </head>
 <body>
@@ -924,18 +992,70 @@
             <img src="https://static.wixstatic.com/media/ca757a_259168483bd74b31b0ca3ea1475b4ed3~mv2.png" alt="Femi By Jojo" class="auth-logo">
             <h2>Femi By Jojo</h2>
             <p>Inventory Manager - Secure Access</p>
-            <form class="auth-form" onsubmit="return checkAuth(event)">
-                <div class="form-group">
-                    <label for="authUsername">Username</label>
-                    <input type="text" id="authUsername" required autocomplete="username">
+
+            <!-- Step 1: Username & Password -->
+            <div id="authStep1" class="auth-step active">
+                <form class="auth-form" onsubmit="return checkPasswordAuth(event)">
+                    <div class="form-group">
+                        <label for="authUsername">Username</label>
+                        <input type="text" id="authUsername" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="authPassword">Password</label>
+                        <input type="password" id="authPassword" required autocomplete="current-password">
+                    </div>
+                    <button type="submit">Continue</button>
+                    <div class="auth-error" id="authError">Invalid username or password</div>
+                </form>
+            </div>
+
+            <!-- Step 2: 2FA Setup (First Time) -->
+            <div id="authStep2Setup" class="auth-step">
+                <p class="auth-subtitle">Set up Two-Factor Authentication</p>
+                <div class="instructions">
+                    <ol>
+                        <li>Open Microsoft Authenticator on your phone</li>
+                        <li>Tap the "+" button to add an account</li>
+                        <li>Select "Other account (Google, Facebook, etc.)"</li>
+                        <li>Scan the QR code below</li>
+                        <li>Enter the 6-digit code shown in the app</li>
+                    </ol>
                 </div>
-                <div class="form-group">
-                    <label for="authPassword">Password</label>
-                    <input type="password" id="authPassword" required autocomplete="current-password">
+                <div class="qr-code-container">
+                    <img id="qrCodeImage" src="" alt="QR Code">
+                    <div class="secret-key">
+                        <strong>Manual Entry Key:</strong><br>
+                        <span id="secretKeyDisplay"></span>
+                    </div>
                 </div>
-                <button type="submit">Login</button>
-                <div class="auth-error" id="authError">Invalid username or password</div>
-            </form>
+                <form class="auth-form" onsubmit="return verify2FASetup(event)">
+                    <div class="form-group">
+                        <label for="setup2FACode">Enter 6-Digit Code</label>
+                        <input type="text" id="setup2FACode" class="code-input" maxlength="6" pattern="[0-9]{6}" required autocomplete="off">
+                    </div>
+                    <button type="submit">Verify & Complete Setup</button>
+                    <div class="auth-error" id="setup2FAError">Invalid code. Please try again.</div>
+                </form>
+            </div>
+
+            <!-- Step 3: 2FA Verification (Every Login) -->
+            <div id="authStep3Verify" class="auth-step">
+                <p class="auth-subtitle">Two-Factor Authentication Required</p>
+                <div class="instructions">
+                    <p style="color: #a0a0a0; text-align: center; padding: 10px;">
+                        Open Microsoft Authenticator and enter the 6-digit code for <strong id="current2FAUser" style="color: #00d9ff;"></strong>
+                    </p>
+                </div>
+                <form class="auth-form" onsubmit="return verify2FA(event)">
+                    <div class="form-group">
+                        <label for="verify2FACode">Enter 6-Digit Code</label>
+                        <input type="text" id="verify2FACode" class="code-input" maxlength="6" pattern="[0-9]{6}" required autocomplete="off">
+                    </div>
+                    <button type="submit">Verify</button>
+                    <div class="auth-error" id="verify2FAError">Invalid code. Please try again.</div>
+                </form>
+                <button class="close-modal" onclick="reset2FAFlow()" style="margin-top: 15px; width: 100%;">Back to Login</button>
+            </div>
         </div>
     </div>
 
@@ -2380,11 +2500,268 @@
         });
     
 
+        
+        // ==================== TOTP 2FA Implementation ====================
+
+        // Base32 encoding/decoding for TOTP secrets
+        const base32 = {
+            charset: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
+
+            encode: function(buffer) {
+                let bits = 0;
+                let value = 0;
+                let output = '';
+
+                for (let i = 0; i < buffer.length; i++) {
+                    value = (value << 8) | buffer[i];
+                    bits += 8;
+
+                    while (bits >= 5) {
+                        output += this.charset[(value >>> (bits - 5)) & 31];
+                        bits -= 5;
+                    }
+                }
+
+                if (bits > 0) {
+                    output += this.charset[(value << (5 - bits)) & 31];
+                }
+
+                return output;
+            },
+
+            decode: function(str) {
+                let bits = 0;
+                let value = 0;
+                let index = 0;
+                const output = new Uint8Array(Math.ceil(str.length * 5 / 8));
+
+                for (let i = 0; i < str.length; i++) {
+                    const idx = this.charset.indexOf(str[i].toUpperCase());
+                    if (idx === -1) continue;
+
+                    value = (value << 5) | idx;
+                    bits += 5;
+
+                    if (bits >= 8) {
+                        output[index++] = (value >>> (bits - 8)) & 255;
+                        bits -= 8;
+                    }
+                }
+
+                return output;
+            }
+        };
+
+        // HMAC-SHA1 implementation
+        function hmacSHA1(key, message) {
+            const blockSize = 64;
+
+            if (key.length > blockSize) {
+                key = sha1(key);
+            }
+
+            const keyPadded = new Uint8Array(blockSize);
+            keyPadded.set(key);
+
+            const ipad = new Uint8Array(blockSize);
+            const opad = new Uint8Array(blockSize);
+
+            for (let i = 0; i < blockSize; i++) {
+                ipad[i] = keyPadded[i] ^ 0x36;
+                opad[i] = keyPadded[i] ^ 0x5c;
+            }
+
+            const innerHash = sha1(concat(ipad, message));
+            return sha1(concat(opad, innerHash));
+        }
+
+        function sha1(data) {
+            const msg = new Uint8Array(data);
+            const msgLen = msg.length;
+            const bitLen = msgLen * 8;
+
+            const paddedLen = Math.ceil((msgLen + 9) / 64) * 64;
+            const padded = new Uint8Array(paddedLen);
+            padded.set(msg);
+            padded[msgLen] = 0x80;
+
+            const view = new DataView(padded.buffer);
+            view.setUint32(paddedLen - 4, bitLen, false);
+
+            let h0 = 0x67452301;
+            let h1 = 0xEFCDAB89;
+            let h2 = 0x98BADCFE;
+            let h3 = 0x10325476;
+            let h4 = 0xC3D2E1F0;
+
+            for (let offset = 0; offset < paddedLen; offset += 64) {
+                const w = new Array(80);
+
+                for (let i = 0; i < 16; i++) {
+                    w[i] = view.getUint32(offset + i * 4, false);
+                }
+
+                for (let i = 16; i < 80; i++) {
+                    w[i] = rotl(w[i-3] ^ w[i-8] ^ w[i-14] ^ w[i-16], 1);
+                }
+
+                let a = h0, b = h1, c = h2, d = h3, e = h4;
+
+                for (let i = 0; i < 80; i++) {
+                    let f, k;
+                    if (i < 20) {
+                        f = (b & c) | ((~b) & d);
+                        k = 0x5A827999;
+                    } else if (i < 40) {
+                        f = b ^ c ^ d;
+                        k = 0x6ED9EBA1;
+                    } else if (i < 60) {
+                        f = (b & c) | (b & d) | (c & d);
+                        k = 0x8F1BBCDC;
+                    } else {
+                        f = b ^ c ^ d;
+                        k = 0xCA62C1D6;
+                    }
+
+                    const temp = (rotl(a, 5) + f + e + k + w[i]) | 0;
+                    e = d;
+                    d = c;
+                    c = rotl(b, 30);
+                    b = a;
+                    a = temp;
+                }
+
+                h0 = (h0 + a) | 0;
+                h1 = (h1 + b) | 0;
+                h2 = (h2 + c) | 0;
+                h3 = (h3 + d) | 0;
+                h4 = (h4 + e) | 0;
+            }
+
+            const result = new Uint8Array(20);
+            const resultView = new DataView(result.buffer);
+            resultView.setUint32(0, h0, false);
+            resultView.setUint32(4, h1, false);
+            resultView.setUint32(8, h2, false);
+            resultView.setUint32(12, h3, false);
+            resultView.setUint32(16, h4, false);
+
+            return result;
+        }
+
+        function rotl(n, s) {
+            return (n << s) | (n >>> (32 - s));
+        }
+
+        function concat(a, b) {
+            const result = new Uint8Array(a.length + b.length);
+            result.set(a);
+            result.set(b, a.length);
+            return result;
+        }
+
+        // Generate TOTP code
+        function generateTOTP(secret, timeStep = 30) {
+            const epoch = Math.floor(Date.now() / 1000);
+            const counter = Math.floor(epoch / timeStep);
+
+            const key = base32.decode(secret);
+            const message = new Uint8Array(8);
+            const view = new DataView(message.buffer);
+            view.setUint32(4, counter, false);
+
+            const hash = hmacSHA1(key, message);
+            const offset = hash[19] & 0xf;
+            const binary = ((hash[offset] & 0x7f) << 24) |
+                          ((hash[offset + 1] & 0xff) << 16) |
+                          ((hash[offset + 2] & 0xff) << 8) |
+                          (hash[offset + 3] & 0xff);
+
+            const otp = binary % 1000000;
+            return otp.toString().padStart(6, '0');
+        }
+
+        // Generate random secret for new 2FA setup
+        function generateSecret() {
+            const buffer = new Uint8Array(20);
+            crypto.getRandomValues(buffer);
+            return base32.encode(buffer);
+        }
+
+        // Generate QR code URL for Microsoft Authenticator
+        function generateQRCodeURL(username, secret) {
+            const issuer = 'Femi By Jojo';
+            const accountName = username + '@FemiByJojo';
+            const otpauth = 'otpauth://totp/' + encodeURIComponent(issuer + ':' + accountName) +
+                          '?secret=' + secret +
+                          '&issuer=' + encodeURIComponent(issuer) +
+                          '&algorithm=SHA1&digits=6&period=30';
+
+            // Use Google Charts API to generate QR code
+            return 'https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=' + encodeURIComponent(otpauth);
+        }
+
+        // Get or create 2FA secret for user
+        function get2FASecret(username) {
+            const secrets = JSON.parse(localStorage.getItem('totp_secrets') || '{}');
+
+            if (!secrets[username]) {
+                secrets[username] = generateSecret();
+                localStorage.setItem('totp_secrets', JSON.stringify(secrets));
+            }
+
+            return secrets[username];
+        }
+
+        // Check if user has completed 2FA setup
+        function is2FASetup(username) {
+            const setupComplete = JSON.parse(localStorage.getItem('totp_setup_complete') || '{}');
+            return setupComplete[username] === true;
+        }
+
+        // Mark 2FA setup as complete
+        function complete2FASetup(username) {
+            const setupComplete = JSON.parse(localStorage.getItem('totp_setup_complete') || '{}');
+            setupComplete[username] = true;
+            localStorage.setItem('totp_setup_complete', JSON.stringify(setupComplete));
+        }
+
+        // Validate TOTP code (with time window tolerance)
+        function validateTOTP(secret, userCode) {
+            // Check current time window and +/- 1 window for clock drift tolerance
+            for (let drift = -1; drift <= 1; drift++) {
+                const epoch = Math.floor(Date.now() / 1000) + (drift * 30);
+                const counter = Math.floor(epoch / 30);
+
+                const key = base32.decode(secret);
+                const message = new Uint8Array(8);
+                const view = new DataView(message.buffer);
+                view.setUint32(4, counter, false);
+
+                const hash = hmacSHA1(key, message);
+                const offset = hash[19] & 0xf;
+                const binary = ((hash[offset] & 0x7f) << 24) |
+                              ((hash[offset + 1] & 0xff) << 16) |
+                              ((hash[offset + 2] & 0xff) << 8) |
+                              (hash[offset + 3] & 0xff);
+
+                const otp = (binary % 1000000).toString().padStart(6, '0');
+
+                if (otp === userCode) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // ==================== End TOTP Implementation ====================
+
         // Authentication System
         const AUTH_CREDENTIALS = [
-            { username: 'admin', passwordHash: '2eb9771b' },
-            { username: 'Jojo', passwordHash: '29c5f3e4' },
-            { username: 'zooman', passwordHash: '2eb9769f' }
+            { username: 'admin', passwordHash: '2eb9771b', requires2FA: true },
+            { username: 'Jojo', passwordHash: '29c5f3e4', requires2FA: true },
+            { username: 'zooman', passwordHash: '2eb9769f', requires2FA: true }
         ];
 
         function simpleHash(str) {
@@ -2397,7 +2774,10 @@
             return Math.abs(hash).toString(16);
         }
 
-        function checkAuth(event) {
+        let currentAuthUser = null;
+        let currentAuthUsername = null;
+
+        function checkPasswordAuth(event) {
             event.preventDefault();
 
             const username = document.getElementById('authUsername').value;
@@ -2410,19 +2790,130 @@
             );
 
             if (validUser) {
-                // Store authentication in session
-                sessionStorage.setItem('authenticated', 'true');
-                document.getElementById('authOverlay').style.display = 'none';
-                showNotification('Login successful! Welcome back.', 'success');
+                currentAuthUser = validUser;
+                currentAuthUsername = username;
+
+                // Check if 2FA is required
+                if (validUser.requires2FA) {
+                    // Check if user has completed 2FA setup
+                    if (is2FASetup(username)) {
+                        // Show 2FA verification step
+                        show2FAVerification(username);
+                    } else {
+                        // Show 2FA setup step
+                        show2FASetup(username);
+                    }
+                } else {
+                    // No 2FA required, grant access
+                    grantAccess(username);
+                }
+
+                // Hide error
+                document.getElementById('authError').style.display = 'none';
             } else {
                 document.getElementById('authError').style.display = 'block';
                 document.getElementById('authPassword').value = '';
-                setTimeout(() => {
-                    document.getElementById('authError').style.display = 'none';
-                }, 3000);
             }
-            
+
             return false;
+        }
+
+        function show2FASetup(username) {
+            // Hide step 1, show step 2
+            document.getElementById('authStep1').classList.remove('active');
+            document.getElementById('authStep2Setup').classList.add('active');
+
+            // Generate secret and QR code
+            const secret = get2FASecret(username);
+            const qrURL = generateQRCodeURL(username, secret);
+
+            document.getElementById('qrCodeImage').src = qrURL;
+            document.getElementById('secretKeyDisplay').textContent = secret;
+            document.getElementById('setup2FACode').value = '';
+            document.getElementById('setup2FAError').style.display = 'none';
+        }
+
+        function show2FAVerification(username) {
+            // Hide step 1, show step 3
+            document.getElementById('authStep1').classList.remove('active');
+            document.getElementById('authStep3Verify').classList.add('active');
+
+            document.getElementById('current2FAUser').textContent = username;
+            document.getElementById('verify2FACode').value = '';
+            document.getElementById('verify2FAError').style.display = 'none';
+
+            // Auto-focus the code input
+            setTimeout(() => {
+                document.getElementById('verify2FACode').focus();
+            }, 100);
+        }
+
+        function verify2FASetup(event) {
+            event.preventDefault();
+
+            const code = document.getElementById('setup2FACode').value;
+            const secret = get2FASecret(currentAuthUsername);
+
+            if (validateTOTP(secret, code)) {
+                // Mark 2FA setup as complete
+                complete2FASetup(currentAuthUsername);
+
+                // Grant access
+                grantAccess(currentAuthUsername);
+
+                showNotification('2FA setup completed successfully!', 'success');
+            } else {
+                document.getElementById('setup2FAError').style.display = 'block';
+                document.getElementById('setup2FACode').value = '';
+            }
+
+            return false;
+        }
+
+        function verify2FA(event) {
+            event.preventDefault();
+
+            const code = document.getElementById('verify2FACode').value;
+            const secret = get2FASecret(currentAuthUsername);
+
+            if (validateTOTP(secret, code)) {
+                // Grant access
+                grantAccess(currentAuthUsername);
+            } else {
+                document.getElementById('verify2FAError').style.display = 'block';
+                document.getElementById('verify2FACode').value = '';
+            }
+
+            return false;
+        }
+
+        function grantAccess(username) {
+            // Store authentication in session
+            sessionStorage.setItem('authenticated', 'true');
+            sessionStorage.setItem('username', username);
+
+            // Hide auth overlay
+            document.getElementById('authOverlay').style.display = 'none';
+
+            // Reset to step 1 for next login
+            reset2FAFlow();
+
+            showNotification('Login successful! Welcome back, ' + username + '.', 'success');
+        }
+
+        function reset2FAFlow() {
+            // Show step 1, hide others
+            document.getElementById('authStep1').classList.add('active');
+            document.getElementById('authStep2Setup').classList.remove('active');
+            document.getElementById('authStep3Verify').classList.remove('active');
+
+            // Clear form fields
+            document.getElementById('authUsername').value = '';
+            document.getElementById('authPassword').value = '';
+            document.getElementById('authError').style.display = 'none';
+
+            currentAuthUser = null;
+            currentAuthUsername = null;
         }
 
         // Check authentication on page load
