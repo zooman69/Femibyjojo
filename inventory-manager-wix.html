@@ -587,6 +587,7 @@
                     <label for="csvFile" class="file-label">Load CSV File</label>
                     <span id="fileName"></span>
                 </div>
+                <button class="wix-sync" onclick="importFromWix()" id="importWixBtn">Import from Wix</button>
                 <button onclick="exportToCSV()">Export to CSV</button>
                 <button onclick="addNewProduct()">Add New Product</button>
                 <button class="wix-sync" onclick="syncAllToWix()" id="syncAllBtn">Sync All to Wix</button>
@@ -1408,6 +1409,129 @@
                 document.getElementById('lastSync').textContent = new Date().toLocaleTimeString();
             } else {
                 showNotification('Sync failed: ' + (product.syncError || 'Unknown error'), 'error');
+            }
+        }
+
+        // Import products from Wix
+        async function importFromWix() {
+            if (!wixConfig.connected) {
+                showNotification('Please configure Wix API settings first', 'error');
+                openWixSettings();
+                return;
+            }
+
+            if (!confirm('This will replace your current inventory with products from Wix. Continue?')) {
+                return;
+            }
+
+            const btn = document.getElementById('importWixBtn');
+            btn.disabled = true;
+            btn.textContent = 'Importing...';
+
+            try {
+                let allWixProducts = [];
+                let cursor = null;
+                let hasMore = true;
+
+                // Fetch all products from Wix (paginated)
+                while (hasMore) {
+                    const query = {
+                        query: {
+                            paging: { limit: 100 }
+                        }
+                    };
+
+                    if (cursor) {
+                        query.query.paging.cursor = cursor;
+                    }
+
+                    const response = await callWixAPI('/stores/v1/products/query', 'POST', query);
+
+                    if (response.products && response.products.length > 0) {
+                        allWixProducts = allWixProducts.concat(response.products);
+                    }
+
+                    cursor = response.pagingMetadata?.cursors?.next;
+                    hasMore = !!cursor;
+                }
+
+                // Convert Wix products to CSV format
+                allProducts = allWixProducts.map(wixProduct => {
+                    return {
+                        handleId: wixProduct.id || `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        fieldType: 'Product',
+                        name: wixProduct.name || '',
+                        productImageUrl: wixProduct.media?.mainMedia?.image?.url?.split('/').pop() || '',
+                        collection: wixProduct.collectionIds?.[0] || '',
+                        sku: wixProduct.sku || '',
+                        ribbon: wixProduct.ribbon || '',
+                        price: wixProduct.priceData?.price || '0',
+                        surcharge: '',
+                        visible: wixProduct.visible ? 'TRUE' : 'FALSE',
+                        discountMode: 'AMOUNT',
+                        discountValue: '',
+                        inventory: wixProduct.stock?.quantity || '0',
+                        weight: wixProduct.weight || '0',
+                        cost: wixProduct.costAndProfitData?.itemCost || '',
+                        productOptionName1: '',
+                        productOptionType1: '',
+                        productOptionDescription1: '',
+                        productOptionName2: '',
+                        productOptionType2: '',
+                        productOptionDescription2: '',
+                        productOptionName3: '',
+                        productOptionType3: '',
+                        productOptionDescription3: '',
+                        productOptionName4: '',
+                        productOptionType4: '',
+                        productOptionDescription4: '',
+                        productOptionName5: '',
+                        productOptionType5: '',
+                        productOptionDescription5: '',
+                        productOptionName6: '',
+                        productOptionType6: '',
+                        productOptionDescription6: '',
+                        additionalInfoTitle1: '',
+                        additionalInfoDescription1: '',
+                        additionalInfoTitle2: '',
+                        additionalInfoDescription2: '',
+                        additionalInfoTitle3: '',
+                        additionalInfoDescription3: '',
+                        additionalInfoTitle4: '',
+                        additionalInfoDescription4: '',
+                        additionalInfoTitle5: '',
+                        additionalInfoDescription5: '',
+                        additionalInfoTitle6: '',
+                        additionalInfoDescription6: '',
+                        customTextField1: '',
+                        customTextCharLimit1: '',
+                        customTextMandatory1: '',
+                        customTextField2: '',
+                        customTextCharLimit2: '',
+                        customTextMandatory2: '',
+                        brand: wixProduct.brand || 'Femi By Jojo',
+                        syncStatus: 'synced'
+                    };
+                });
+
+                // Update headers if not set
+                if (headers.length === 0) {
+                    headers = Object.keys(allProducts[0]);
+                }
+
+                populateFilters();
+                filterTable();
+                updateStats();
+
+                showNotification(`Successfully imported ${allProducts.length} products from Wix!`, 'success');
+                document.getElementById('fileName').textContent = `Imported from Wix (${allProducts.length} products)`;
+
+            } catch (error) {
+                console.error('Import error:', error);
+                showNotification('Failed to import from Wix: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Import from Wix';
             }
         }
 
