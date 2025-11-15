@@ -1410,14 +1410,37 @@
             updateStats();
         });
 
-        function deleteProduct(index) {
-            if (confirm('Are you sure you want to delete this product?')) {
-                allProducts.splice(index, 1);
-                selectedProducts.delete(index);
-                filterTable();
-                updateStats();
-                showNotification('Product deleted', 'info');
+        async function deleteProduct(index) {
+            const product = allProducts[index];
+
+            if (!confirm(`Are you sure you want to delete "${product.name}"?\n\nThis will remove it from both the inventory and your Wix store.`)) {
+                return;
             }
+
+            // Delete from Wix if connected and product has a Wix ID
+            if (wixConfig.connected && product.handleId && !product.handleId.startsWith('product_')) {
+                try {
+                    showNotification('Deleting from Wix...', 'info');
+                    await callWixAPI(`/stores/v1/products/${product.handleId}`, 'DELETE');
+                    console.log(`Deleted product from Wix: ${product.name} (${product.handleId})`);
+                    showNotification('Product deleted from Wix and inventory', 'success');
+                } catch (error) {
+                    console.error('Wix deletion error:', error);
+                    const proceed = confirm(`Failed to delete from Wix: ${error.message}\n\nDo you still want to remove it from the local inventory?`);
+                    if (!proceed) {
+                        return;
+                    }
+                    showNotification('Product removed from inventory only', 'info');
+                }
+            } else {
+                showNotification('Product deleted from inventory', 'info');
+            }
+
+            // Remove from local inventory
+            allProducts.splice(index, 1);
+            selectedProducts.delete(index);
+            filterTable();
+            updateStats();
         }
 
         async function syncSingleProduct(index) {
