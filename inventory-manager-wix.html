@@ -1464,7 +1464,14 @@
                 }
 
                 // Convert Wix products to CSV format
-                allProducts = allWixProducts.map(wixProduct => {
+                allProducts = allWixProducts.map((wixProduct, index) => {
+                    // Debug: Log first product to see structure
+                    if (index === 0) {
+                        console.log('Sample Wix Product:', JSON.stringify(wixProduct, null, 2));
+                        console.log('Price Data:', wixProduct.priceData);
+                        console.log('Discount:', wixProduct.discount);
+                    }
+
                     // Extract image URL - handle both full URLs and Wix media format
                     let imageUrl = '';
                     if (wixProduct.media?.mainMedia?.image?.url) {
@@ -1482,21 +1489,31 @@
                     let discountMode = 'AMOUNT';
                     let discountValue = '';
 
+                    // Check for discount in priceData
+                    if (wixProduct.priceData?.discounted === true && wixProduct.priceData?.discountedPrice !== undefined) {
+                        const originalPrice = parseFloat(wixProduct.priceData.price) || 0;
+                        const discountedPrice = parseFloat(wixProduct.priceData.discountedPrice) || 0;
+
+                        if (discountedPrice < originalPrice) {
+                            discountMode = 'AMOUNT';
+                            discountValue = (originalPrice - discountedPrice).toFixed(2);
+
+                            // Log products with discounts
+                            console.log(`Product "${wixProduct.name}" has discount: $${discountValue}`);
+                        }
+                    }
+
+                    // Alternative: Check discount object
                     if (wixProduct.discount) {
                         if (wixProduct.discount.type === 'PERCENT') {
                             discountMode = 'PERCENT';
                             discountValue = wixProduct.discount.value || '';
+                            console.log(`Product "${wixProduct.name}" has ${discountValue}% discount`);
                         } else if (wixProduct.discount.type === 'AMOUNT') {
                             discountMode = 'AMOUNT';
                             discountValue = wixProduct.discount.value || '';
+                            console.log(`Product "${wixProduct.name}" has $${discountValue} discount`);
                         }
-                    } else if (wixProduct.priceData?.discountedPrice !== undefined &&
-                               wixProduct.priceData?.discountedPrice < wixProduct.priceData?.price) {
-                        // Calculate discount from discounted price
-                        const originalPrice = parseFloat(wixProduct.priceData.price);
-                        const discountedPrice = parseFloat(wixProduct.priceData.discountedPrice);
-                        discountMode = 'AMOUNT';
-                        discountValue = (originalPrice - discountedPrice).toFixed(2);
                     }
 
                     return {
