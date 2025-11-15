@@ -595,10 +595,10 @@
             </div>
             <div class="control-row">
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Search by name, SKU, collection..." oninput="filterTable()">
+                    <input type="text" id="searchInput" placeholder="Search by name, SKU, category..." oninput="filterTable()">
                 </div>
                 <select id="collectionFilter" onchange="filterTable()">
-                    <option value="">All Collections</option>
+                    <option value="">All Categories</option>
                 </select>
                 <select id="visibilityFilter" onchange="filterTable()">
                     <option value="">All Visibility</option>
@@ -937,12 +937,12 @@
                                 });
                                 if (newCollection.collection && newCollection.collection.id) {
                                     wixProduct.collectionIds = [newCollection.collection.id];
-                                    console.log(`Created new collection: ${product.collection} (${newCollection.collection.id})`);
+                                    console.log(`Created new category: ${product.collection} (${newCollection.collection.id})`);
                                 }
                             }
                         } catch (error) {
-                            console.error('Collection handling error:', error);
-                            // Continue without collection if there's an error
+                            console.error('Category handling error:', error);
+                            // Continue without category if there's an error
                         }
                     }
                 }
@@ -1201,7 +1201,7 @@
             });
 
             const collectionFilter = document.getElementById('collectionFilter');
-            collectionFilter.innerHTML = '<option value="">All Collections</option>';
+            collectionFilter.innerHTML = '<option value="">All Categories</option>';
             Array.from(collections).sort().forEach(collection => {
                 const option = document.createElement('option');
                 option.value = collection;
@@ -1274,7 +1274,7 @@
                 'select': '☑',
                 'productImageUrl': 'Image',
                 'name': 'Product Name',
-                'collection': 'Collection',
+                'collection': 'Category',
                 'sku': 'SKU',
                 'price': 'Price',
                 'inventory': 'Stock',
@@ -1611,7 +1611,7 @@
 
             try {
                 // First, fetch all collections to map IDs to names
-                showNotification('Fetching collections...', 'info');
+                showNotification('Fetching categories...', 'info');
                 const collectionsMap = {};
 
                 try {
@@ -1625,11 +1625,11 @@
                         collectionsResponse.collections.forEach(collection => {
                             collectionsMap[collection.id] = collection.name;
                         });
-                        console.log('Collections loaded:', collectionsMap);
+                        console.log('Categories loaded:', collectionsMap);
                     }
                 } catch (error) {
-                    console.error('Failed to fetch collections:', error);
-                    // Continue without collection names
+                    console.error('Failed to fetch categories:', error);
+                    // Continue without category names
                 }
 
                 let allWixProducts = [];
