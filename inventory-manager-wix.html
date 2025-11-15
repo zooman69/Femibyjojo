@@ -1286,7 +1286,7 @@
             }
 
             const headerRow = document.getElementById('tableHeader');
-            const displayColumns = ['select', 'productImageUrl', 'name', 'collection', 'sku', 'price', 'discountValue', 'inventory', 'visible', 'syncStatus', 'actions'];
+            const displayColumns = ['select', 'productImageUrl', 'name', 'collection', 'sku', 'price', 'discountValue', 'salePrice', 'inventory', 'visible', 'syncStatus', 'actions'];
             const columnLabels = {
                 'select': '☑',
                 'productImageUrl': 'Image',
@@ -1295,6 +1295,7 @@
                 'sku': 'SKU',
                 'price': 'Price',
                 'discountValue': 'Discount',
+                'salePrice': 'Sale Price',
                 'inventory': 'Stock',
                 'visible': 'Status',
                 'syncStatus': 'Sync',
@@ -1327,15 +1328,24 @@
                     'error': 'Error'
                 }[syncStatusClass] || 'Unknown';
 
-                // Format discount display
+                // Format discount display and calculate sale price
                 let discountDisplay = '-';
+                let salePriceDisplay = '-';
+                const basePrice = parseFloat(product.price || 0);
+
                 if (product.discountValue && parseFloat(product.discountValue) > 0) {
                     const discountVal = parseFloat(product.discountValue);
+                    let salePrice = basePrice;
+
                     if (product.discountMode === 'PERCENT') {
                         discountDisplay = `${discountVal}%`;
+                        salePrice = basePrice - (basePrice * (discountVal / 100));
                     } else {
                         discountDisplay = `$${discountVal.toFixed(2)}`;
+                        salePrice = basePrice - discountVal;
                     }
+
+                    salePriceDisplay = `$${Math.max(0, salePrice).toFixed(2)}`;
                 }
 
                 return `
@@ -1347,8 +1357,9 @@
                         <td><strong>${product.name || '-'}</strong></td>
                         <td>${product.collection || '-'}</td>
                         <td>${product.sku || '-'}</td>
-                        <td class="price">$${parseFloat(product.price || 0).toFixed(2)}</td>
+                        <td class="price">$${basePrice.toFixed(2)}</td>
                         <td style="color: #e74c3c; font-weight: 500;">${discountDisplay}</td>
+                        <td style="color: #27ae60; font-weight: 600; font-size: 1.05em;">${salePriceDisplay}</td>
                         <td>${product.inventory || 0}</td>
                         <td><span class="visible-badge visible-${product.visible?.toLowerCase()}">${product.visible === 'TRUE' ? 'Visible' : 'Hidden'}</span></td>
                         <td><span class="sync-status ${syncStatusClass}">${syncStatusText}</span></td>
