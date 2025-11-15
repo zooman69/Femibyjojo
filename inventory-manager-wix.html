@@ -1478,6 +1478,27 @@
                         imageUrl = match ? match[1] : fullUrl.split('/').pop().split('?')[0];
                     }
 
+                    // Extract discount information
+                    let discountMode = 'AMOUNT';
+                    let discountValue = '';
+
+                    if (wixProduct.discount) {
+                        if (wixProduct.discount.type === 'PERCENT') {
+                            discountMode = 'PERCENT';
+                            discountValue = wixProduct.discount.value || '';
+                        } else if (wixProduct.discount.type === 'AMOUNT') {
+                            discountMode = 'AMOUNT';
+                            discountValue = wixProduct.discount.value || '';
+                        }
+                    } else if (wixProduct.priceData?.discountedPrice !== undefined &&
+                               wixProduct.priceData?.discountedPrice < wixProduct.priceData?.price) {
+                        // Calculate discount from discounted price
+                        const originalPrice = parseFloat(wixProduct.priceData.price);
+                        const discountedPrice = parseFloat(wixProduct.priceData.discountedPrice);
+                        discountMode = 'AMOUNT';
+                        discountValue = (originalPrice - discountedPrice).toFixed(2);
+                    }
+
                     return {
                         handleId: wixProduct.id || `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                         fieldType: 'Product',
@@ -1489,8 +1510,8 @@
                         price: wixProduct.priceData?.price || '0',
                         surcharge: '',
                         visible: wixProduct.visible ? 'TRUE' : 'FALSE',
-                        discountMode: 'AMOUNT',
-                        discountValue: '',
+                        discountMode: discountMode,
+                        discountValue: discountValue,
                         inventory: wixProduct.stock?.quantity || '0',
                         weight: wixProduct.weight || '0',
                         cost: wixProduct.costAndProfitData?.itemCost || '',
