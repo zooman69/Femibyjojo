@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>Femi By Jojo - Inventory Manager with Wix Sync v2.0</title>
+    <title>Femi By Jojo - Inventory Manager with Wix Sync</title>
     <style>
         * {
             margin: 0;
@@ -16,30 +13,37 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #0f0f0f;
             min-height: 100vh;
             padding: 20px;
+            color: #e0e0e0;
         }
 
         .container {
             max-width: 1600px;
             margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            background: #1a1a1a;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
             overflow: hidden;
+            border: 1px solid #2a2a2a;
         }
 
         header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             color: white;
             padding: 30px;
             text-align: center;
+            border-bottom: 2px solid #00d9ff;
         }
 
         header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
+            background: linear-gradient(135deg, #00d9ff, #00ffaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .wix-status {
@@ -47,10 +51,11 @@
             align-items: center;
             gap: 10px;
             padding: 10px 20px;
-            background: rgba(255,255,255,0.2);
+            background: rgba(0, 217, 255, 0.1);
             border-radius: 20px;
             margin-top: 10px;
             cursor: pointer;
+            border: 1px solid rgba(0, 217, 255, 0.3);
         }
 
         .status-dot {
@@ -61,7 +66,8 @@
         }
 
         .status-dot.connected {
-            background: #28a745;
+            background: #00ffaa;
+            box-shadow: 0 0 15px #00ffaa;
         }
 
         .stats {
@@ -73,26 +79,28 @@
         }
 
         .stat-card {
-            background: rgba(255,255,255,0.2);
+            background: rgba(0, 217, 255, 0.1);
             padding: 15px 25px;
             border-radius: 10px;
-            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 217, 255, 0.2);
         }
 
         .stat-card .number {
             font-size: 2em;
             font-weight: bold;
+            color: #00d9ff;
         }
 
         .stat-card .label {
             font-size: 0.9em;
             opacity: 0.9;
+            color: #a0a0a0;
         }
 
         .controls {
             padding: 30px;
-            background: #f8f9fa;
-            border-bottom: 2px solid #e9ecef;
+            background: #1a1a1a;
+            border-bottom: 1px solid #2a2a2a;
         }
 
         .control-row {
@@ -103,45 +111,25 @@
             align-items: center;
         }
 
-        .search-box {
-            flex: 1;
-            min-width: 300px;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 12px 20px;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        .search-box input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
-        }
-
-        select, button {
-            padding: 12px 20px;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
+        .control-row:last-child {
+            margin-bottom: 0;
         }
 
         button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            font-weight: bold;
+            padding: 12px 24px;
+            border: 1px solid #00d9ff;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #00d9ff, #00ffaa);
+            color: #0f0f0f;
         }
 
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+            box-shadow: 0 6px 25px rgba(0, 217, 255, 0.5);
         }
 
         button:disabled {
@@ -151,216 +139,249 @@
         }
 
         button.wix-sync {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            background: linear-gradient(135deg, #00d9ff, #00ffaa);
         }
 
-        button.wix-sync:hover {
-            box-shadow: 0 5px 15px rgba(255,107,107,0.4);
+        .search-box {
+            flex: 1;
+            min-width: 250px;
         }
 
-        .file-upload {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        .file-label {
-            padding: 12px 20px;
-            background: #28a745;
-            color: white;
+        input[type="text"],
+        input[type="file"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #2a2a2a;
             border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: #252525;
+            color: #e0e0e0;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #00d9ff;
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.2);
+        }
+
+        select {
             cursor: pointer;
-            transition: all 0.3s;
-            font-weight: bold;
+            min-width: 150px;
         }
 
-        .file-label:hover {
-            background: #218838;
-            transform: translateY(-2px);
-        }
-
+        
         .table-container {
             overflow-x: auto;
-            max-height: 600px;
-            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
         }
 
         thead {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
             position: sticky;
             top: 0;
-            background: #343a40;
-            color: white;
             z-index: 10;
+            border-bottom: 2px solid #00d9ff;
         }
 
         th {
             padding: 15px 10px;
             text-align: left;
             font-weight: 600;
-            white-space: nowrap;
+            color: #00d9ff;
             cursor: pointer;
-            user-select: none;
-            position: relative;
+            white-space: nowrap;
         }
 
         th:hover {
-            background: #495057;
-        }
-
-        th.sortable::after {
-            content: ' ⇅';
-            opacity: 0.3;
-        }
-
-        th.sorted-asc::after {
-            content: ' ↑';
-            opacity: 1;
-        }
-
-        th.sorted-desc::after {
-            content: ' ↓';
-            opacity: 1;
-        }
-
-        td {
-            padding: 12px 10px;
-            border-bottom: 1px solid #dee2e6;
+            background: rgba(0, 217, 255, 0.1);
         }
 
         tbody tr {
-            transition: background 0.2s;
+            border-bottom: 1px solid #2a2a2a;
+            transition: all 0.3s ease;
         }
 
         tbody tr:hover {
-            background: #f8f9fa;
+            background: rgba(0, 217, 255, 0.05);
         }
 
         tbody tr.syncing {
-            opacity: 0.6;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        td {
+            padding: 15px 10px;
+            color: #e0e0e0;
+        }
+
+        td input[type="checkbox"] {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
         }
 
         .product-image {
             width: 50px;
             height: 50px;
             object-fit: cover;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
+            transition: transform 0.3s ease;
+            border: 2px solid #2a2a2a;
         }
 
-        .visible-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .visible-true {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .visible-false {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .sync-status {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-            display: inline-block;
-        }
-
-        .sync-status.synced {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .sync-status.pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .sync-status.error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .sync-status.syncing {
-            background: #cfe2ff;
-            color: #084298;
+        .product-image:hover {
+            transform: scale(2);
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0, 217, 255, 0.3);
         }
 
         .price {
-            font-weight: bold;
-            color: #28a745;
+            font-weight: 600;
+            color: #00d9ff;
         }
 
-        .edit-btn, .delete-btn, .sync-btn {
-            padding: 6px 12px;
-            margin: 2px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+        .visible-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
             font-size: 12px;
-            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .visible-badge.visible-true {
+            background: rgba(0, 255, 170, 0.2);
+            color: #00ffaa;
+            border: 1px solid rgba(0, 255, 170, 0.3);
+        }
+
+        .visible-badge.visible-false {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+
+        .sync-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .sync-status.pending {
+            background: rgba(160, 160, 160, 0.2);
+            color: #a0a0a0;
+            border: 1px solid rgba(160, 160, 160, 0.3);
+        }
+
+        .sync-status.syncing {
+            background: rgba(0, 217, 255, 0.2);
+            color: #00d9ff;
+            border: 1px solid rgba(0, 217, 255, 0.3);
+        }
+
+        .sync-status.synced {
+            background: rgba(0, 255, 170, 0.2);
+            color: #00ffaa;
+            border: 1px solid rgba(0, 255, 170, 0.3);
+        }
+
+        .sync-status.error {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+
+        .edit-btn,
+        .sync-btn,
+        .delete-btn {
+            padding: 6px 12px;
+            margin-right: 5px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
         .edit-btn {
-            background: #007bff;
-            color: white;
+            background: #00d9ff;
+            color: #0f0f0f;
+            border: 1px solid #00d9ff;
         }
 
         .edit-btn:hover {
-            background: #0056b3;
-        }
-
-        .delete-btn {
-            background: #dc3545;
-            color: white;
-        }
-
-        .delete-btn:hover {
-            background: #c82333;
+            background: #00c4e6;
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.4);
         }
 
         .sync-btn {
-            background: #ff6b6b;
-            color: white;
+            background: #00ffaa;
+            color: #0f0f0f;
+            border: 1px solid #00ffaa;
         }
 
         .sync-btn:hover {
-            background: #ee5a6f;
+            background: #00e699;
+            box-shadow: 0 4px 15px rgba(0, 255, 170, 0.4);
+        }
+
+        .delete-btn {
+            background: #ff6b6b;
+            color: white;
+            border: 1px solid #ff6b6b;
+        }
+
+        .delete-btn:hover {
+            background: #ff5252;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
         }
 
         .pagination {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
             padding: 20px;
-            background: #f8f9fa;
+            background: #1a1a1a;
+            border-top: 1px solid #2a2a2a;
         }
 
         .pagination button {
             padding: 8px 16px;
-            min-width: 40px;
+            background: #252525;
+            border: 1px solid #2a2a2a;
+            color: #e0e0e0;
         }
 
-        .pagination .page-info {
+        .pagination button:hover:not(:disabled) {
+            background: rgba(0, 217, 255, 0.2);
+            border-color: #00d9ff;
+        }
+
+        .page-info {
+            color: #a0a0a0;
             font-size: 14px;
-            color: #495057;
         }
 
         .modal {
@@ -370,246 +391,61 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.85);
             z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            backdrop-filter: blur(5px);
         }
 
         .modal.active {
             display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .modal-content {
-            background: white;
-            border-radius: 15px;
+            background: #1a1a1a;
             padding: 30px;
-            max-width: 800px;
-            max-height: 90vh;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
             overflow-y: auto;
-            position: relative;
-            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 217, 255, 0.3);
+            border: 1px solid #2a2a2a;
         }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .modal-content h2 {
             margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #e9ecef;
-        }
-
-        .modal-header h2 {
-            color: #343a40;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 30px;
-            cursor: pointer;
-            color: #6c757d;
-            padding: 0;
-            width: 40px;
-            height: 40px;
-        }
-
-        .close-btn:hover {
-            color: #dc3545;
-            transform: none;
+            color: #00d9ff;
+            font-size: 1.8em;
         }
 
         .form-group {
-            margin-bottom: 25px;
-            position: relative;
+            margin-bottom: 20px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             font-weight: 600;
-            color: #2c3e50;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            color: #a0a0a0;
         }
 
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e6ed;
-            border-radius: 10px;
-            font-size: 15px;
-            font-family: inherit;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            transform: translateY(-1px);
-        }
-
-        .form-group input:hover,
-        .form-group select:hover,
-        .form-group textarea:hover {
-            border-color: #b8c5d6;
-        }
-
-        .form-group textarea {
-            min-height: 120px;
-            resize: vertical;
-            line-height: 1.6;
-        }
-
-        .form-group small {
-            display: block;
-            margin-top: 6px;
-            font-size: 12px;
-            color: #6c757d;
-            font-style: italic;
-        }
-
-        /* Form sections */
-        .form-section {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            border-left: 4px solid #667eea;
-        }
-
-        .form-section-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 15px;
+        .modal-actions {
             display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .form-section-title::before {
-            content: "▶";
-            font-size: 12px;
-        }
-
-        /* Two column layout for form */
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .form-grid-full {
-            grid-column: 1 / -1;
-        }
-
-        @media (max-width: 768px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Enhanced file input button */
-        .form-group input[type="file"] + label,
-        .form-group button[type="button"] {
-            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            box-shadow: 0 4px 10px rgba(155, 89, 182, 0.3);
-        }
-
-        .form-group input[type="file"] + label:hover,
-        .form-group button[type="button"]:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(155, 89, 182, 0.4);
-        }
-
-        /* Number input styling */
-        .form-group input[type="number"] {
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 12px;
+            gap: 10px;
             justify-content: flex-end;
-            margin-top: 30px;
-            padding-top: 25px;
-            border-top: 2px solid #e9ecef;
+            margin-top: 25px;
         }
 
-        .form-actions button {
-            padding: 12px 30px;
-            font-size: 15px;
-            font-weight: 600;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        .close-modal {
+            background: #2a2a2a;
+            color: #e0e0e0;
+            border: 1px solid #3a3a3a;
         }
 
-        .form-actions button[type="submit"] {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-        }
-
-        .form-actions button[type="submit"]:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .form-actions button[type="button"] {
-            background: white;
-            border: 2px solid #dee2e6;
-            color: #495057;
-        }
-
-        .form-actions button[type="button"]:hover {
-            background: #f8f9fa;
-            border-color: #adb5bd;
-        }
-
-        .sync-log {
-            max-height: 300px;
-            overflow-y: auto;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-        }
-
-        .log-entry {
-            padding: 5px 0;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .log-entry.success {
-            color: #28a745;
-        }
-
-        .log-entry.error {
-            color: #dc3545;
-        }
-
-        .log-entry.info {
-            color: #007bff;
+        .close-modal:hover {
+            background: #3a3a3a;
         }
 
         .notification {
@@ -617,28 +453,13 @@
             top: 20px;
             right: 20px;
             padding: 15px 25px;
-            background: white;
             border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            color: white;
+            font-weight: 600;
             z-index: 2000;
-            display: none;
             animation: slideIn 0.3s ease;
-        }
-
-        .notification.show {
-            display: block;
-        }
-
-        .notification.success {
-            border-left: 4px solid #28a745;
-        }
-
-        .notification.error {
-            border-left: 4px solid #dc3545;
-        }
-
-        .notification.info {
-            border-left: 4px solid #007bff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         @keyframes slideIn {
@@ -652,27 +473,292 @@
             }
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6c757d;
+        .notification.success {
+            background: linear-gradient(135deg, #00ffaa, #00d9ff);
+            color: #0f0f0f;
         }
 
-        .empty-state h3 {
-            margin-bottom: 10px;
+        .notification.error {
+            background: linear-gradient(135deg, #ff6b6b, #ff5252);
+        }
+
+        .notification.info {
+            background: linear-gradient(135deg, #00d9ff, #00c4e6);
+            color: #0f0f0f;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        #connectionLog {
+            margin-top: 15px;
+            padding: 15px;
+            background: #252525;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            color: #a0a0a0;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid #00d9ff;
+            padding-left: 10px;
+        }
+
+        .log-entry.error {
+            border-left-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .log-entry.success {
+            border-left-color: #00ffaa;
+            color: #00ffaa;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            height: 60px;
+            width: auto;
+            filter: brightness(0) invert(1);
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .header-center {
+            flex: 1;
+            text-align: center;
+        }
+
+        .header-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
         }
 
         @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header-left,
+            .header-right {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .header-center {
+                order: -1;
+            }
+        }
+    
+        /* Enhanced Mobile Responsiveness */
+        @media (max-width: 1024px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 12px;
+            }
+
             header h1 {
-                font-size: 1.8em;
+                font-size: 2em;
+            }
+
+            .stat-card {
+                padding: 12px 20px;
+            }
+
+            .stat-card .number {
+                font-size: 1.5em;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+
+            .container {
+                border-radius: 8px;
+            }
+
+            header {
+                padding: 20px 15px;
+            }
+
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            .logo {
+                height: 40px;
+            }
+
+            .header-content {
+                gap: 15px;
+            }
+
+            .stats {
+                gap: 15px;
+            }
+
+            .stat-card {
+                padding: 10px 15px;
+                min-width: 120px;
+            }
+
+            .stat-card .number {
+                font-size: 1.3em;
+            }
+
+            .stat-card .label {
+                font-size: 0.8em;
+            }
+
+            .controls {
+                padding: 20px 15px;
             }
 
             .control-row {
-                flex-direction: column;
+                gap: 10px;
+            }
+
+            button {
+                padding: 10px 18px;
+                font-size: 13px;
+                width: 100%;
             }
 
             .search-box {
                 min-width: 100%;
+            }
+
+            select {
+                width: 100%;
+                min-width: 100%;
+            }
+
+            /* Table becomes horizontally scrollable on mobile */
+            .table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                font-size: 13px;
+                min-width: 800px; /* Ensures table doesn't shrink too much */
+            }
+
+            th, td {
+                padding: 10px 8px;
+            }
+
+            .product-image {
+                width: 40px;
+                height: 40px;
+            }
+
+            .edit-btn,
+            .sync-btn,
+            .delete-btn {
+                padding: 5px 10px;
+                font-size: 11px;
+                margin-bottom: 3px;
+                display: block;
+                width: 100%;
+            }
+
+            .pagination {
+                padding: 15px;
+                gap: 10px;
+            }
+
+            .pagination button {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            .page-info {
+                font-size: 12px;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+                max-height: 90vh;
+            }
+
+            .modal-content h2 {
+                font-size: 1.5em;
+            }
+
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 1.2em;
+            }
+
+            .logo {
+                height: 35px;
+            }
+
+            .wix-status {
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+
+            .stats {
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 8px 12px;
+                min-width: 100px;
+            }
+
+            .stat-card .number {
+                font-size: 1.2em;
+            }
+
+            .stat-card .label {
+                font-size: 0.75em;
+            }
+
+            button {
+                padding: 10px 16px;
+                font-size: 12px;
             }
 
             table {
@@ -680,18 +766,74 @@
             }
 
             th, td {
-                padding: 8px 5px;
+                padding: 8px 6px;
+            }
+
+            .product-image {
+                width: 35px;
+                height: 35px;
+            }
+
+            .notification {
+                width: 90%;
+                right: 5%;
+                font-size: 13px;
+                padding: 12px 18px;
             }
         }
+
+        /* Landscape mobile orientation */
+        @media (max-height: 600px) and (orientation: landscape) {
+            header {
+                padding: 15px;
+            }
+
+            .stats {
+                margin-top: 10px;
+            }
+
+            .stat-card {
+                padding: 8px 15px;
+            }
+        }
+
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            button,
+            .edit-btn,
+            .sync-btn,
+            .delete-btn {
+                min-height: 44px; /* iOS recommended touch target */
+            }
+
+            input[type="checkbox"] {
+                width: 24px;
+                height: 24px;
+            }
+
+            .wix-status {
+                min-height: 44px;
+            }
+        }
+
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Femi By Jojo - Inventory Manager</h1>
-            <div class="wix-status" onclick="openWixSettings()">
-                <span class="status-dot" id="wixStatusDot"></span>
-                <span id="wixStatusText">Wix: Not Connected</span>
+            <div class="header-content">
+                <div class="header-left">
+                    <img src="https://static.wixstatic.com/media/ca757a_259168483bd74b31b0ca3ea1475b4ed3~mv2.png" alt="Femi By Jojo Logo" class="logo">
+                </div>
+                <div class="header-center">
+                    <h1>Inventory Manager</h1>
+                </div>
+                <div class="header-right">
+                    <div class="wix-status" onclick="openWixSettings()">
+                        <span class="status-dot" id="wixStatusDot"></span>
+                        <span id="wixStatusText">Wix: Not Connected</span>
+                    </div>
+                </div>
             </div>
             <div class="stats">
                 <div class="stat-card">
@@ -1559,98 +1701,73 @@
 
             document.getElementById('modalTitle').textContent = 'Edit Product';
 
+            const importantFields = ['name', 'productImageUrl', 'collection', 'sku', 'price', 'discountMode', 'discountValue', 'cost', 'inventory', 'visible', 'ribbon', 'weight', 'brand'];
+
             const formFields = document.getElementById('formFields');
-            const value = (field) => product[field] || '';
+            formFields.innerHTML = importantFields.map(field => {
+                const value = product[field] || '';
 
-            formFields.innerHTML = `
-                <div class="form-section">
-                    <div class="form-section-title">Basic Information</div>
-                    <div class="form-grid">
-                        <div class="form-group form-grid-full">
-                            <label>Product Name</label>
-                            <input type="text" name="name" value="${value('name')}" placeholder="Enter product name" required>
-                        </div>
+                if (field === 'productImageUrl') {
+                    return `
                         <div class="form-group">
-                            <label>SKU</label>
-                            <input type="text" name="sku" value="${value('sku')}" placeholder="Product SKU">
+                            <label>Product Image</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="text" name="${field}" id="imageUrlInput" value="${value}" placeholder="Image URL or filename" style="flex: 1;">
+                                <input type="file" id="imageFileInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+                                <button type="button" onclick="document.getElementById('imageFileInput').click()" style="background: #9b59b6; white-space: nowrap;">
+                                    Choose Image
+                                </button>
+                            </div>
+                            <small style="color: #888; font-size: 0.85em;">Upload an image or enter a URL/filename</small>
                         </div>
-                        <div class="form-group">
-                            <label>Brand</label>
-                            <input type="text" name="brand" value="${value('brand')}" placeholder="Brand name">
-                        </div>
-                        <div class="form-group">
-                            <label>Category</label>
-                            <input type="text" name="collection" value="${value('collection')}" placeholder="Product category">
-                        </div>
-                        <div class="form-group">
-                            <label>Ribbon</label>
-                            <input type="text" name="ribbon" value="${value('ribbon')}" placeholder="e.g., New, Sale, Best Seller">
-                            <small>Optional badge to display on product</small>
-                        </div>
-                    </div>
-                </div>
+                    `;
+                }
 
-                <div class="form-section">
-                    <div class="form-section-title">Product Image</div>
-                    <div class="form-group">
-                        <label>Image</label>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="text" name="productImageUrl" id="imageUrlInput" value="${value('productImageUrl')}" placeholder="Image URL or filename" style="flex: 1;">
-                            <input type="file" id="imageFileInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
-                            <button type="button" onclick="document.getElementById('imageFileInput').click()">
-                                📁 Choose Image
-                            </button>
-                        </div>
-                        <small>Upload an image or enter a Wix media URL</small>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <div class="form-section-title">Pricing & Inventory</div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Price ($)</label>
-                            <input type="number" name="price" value="${value('price')}" step="0.01" min="0" placeholder="0.00" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Cost ($)</label>
-                            <input type="number" name="cost" value="${value('cost')}" step="0.01" min="0" placeholder="0.00">
-                            <small>Your cost for this item</small>
-                        </div>
+                if (field === 'discountMode') {
+                    return `
                         <div class="form-group">
                             <label>Discount Type</label>
-                            <select name="discountMode">
-                                <option value="AMOUNT" ${value('discountMode') === 'AMOUNT' || !value('discountMode') ? 'selected' : ''}>💵 Fixed Amount ($)</option>
-                                <option value="PERCENT" ${value('discountMode') === 'PERCENT' ? 'selected' : ''}>📊 Percentage (%)</option>
+                            <select name="${field}">
+                                <option value="AMOUNT" ${value === 'AMOUNT' || !value ? 'selected' : ''}>Fixed Amount ($)</option>
+                                <option value="PERCENT" ${value === 'PERCENT' ? 'selected' : ''}>Percentage (%)</option>
                             </select>
                         </div>
+                    `;
+                }
+
+                if (field === 'discountValue') {
+                    return `
                         <div class="form-group">
                             <label>Discount Value</label>
-                            <input type="number" name="discountValue" value="${value('discountValue')}" step="0.01" min="0" placeholder="0.00">
-                            <small>Leave empty for no discount</small>
+                            <input type="number" name="${field}" value="${value}" step="0.01" min="0" placeholder="Enter discount amount or %">
+                            <small style="color: #888; font-size: 0.85em;">Leave empty for no discount</small>
                         </div>
-                        <div class="form-group">
-                            <label>Stock Quantity</label>
-                            <input type="number" name="inventory" value="${value('inventory')}" step="1" min="0" placeholder="0">
-                        </div>
-                        <div class="form-group">
-                            <label>Weight (lbs)</label>
-                            <input type="number" name="weight" value="${value('weight')}" step="0.01" min="0" placeholder="0.00">
-                        </div>
-                    </div>
-                </div>
+                    `;
+                }
 
-                <div class="form-section">
-                    <div class="form-section-title">Visibility</div>
-                    <div class="form-group">
-                        <label>Product Status</label>
-                        <select name="visible">
-                            <option value="TRUE" ${value('visible') === 'TRUE' ? 'selected' : ''}>✅ Visible (Show on store)</option>
-                            <option value="FALSE" ${value('visible') === 'FALSE' ? 'selected' : ''}>🔒 Hidden (Not visible to customers)</option>
-                        </select>
-                    </div>
-                </div>
-            `;
+                if (field === 'visible') {
+                    return `
+                        <div class="form-group">
+                            <label>${field}</label>
+                            <select name="${field}">
+                                <option value="TRUE" ${value === 'TRUE' ? 'selected' : ''}>Visible</option>
+                                <option value="FALSE" ${value === 'FALSE' ? 'selected' : ''}>Hidden</option>
+                            </select>
+                        </div>
+                    `;
+                } else {
+                    const inputType = ['price', 'cost', 'weight'].includes(field) ? 'number' :
+                                     field === 'inventory' ? 'number' : 'text';
+                    const step = ['price', 'cost', 'weight'].includes(field) ? '0.01' : '1';
+
+                    return `
+                        <div class="form-group">
+                            <label>${field}</label>
+                            <input type="${inputType}" name="${field}" value="${value}" ${inputType === 'number' ? `step="${step}"` : ''}>
+                        </div>
+                    `;
+                }
+            }).join('');
 
             document.getElementById('editModal').classList.add('active');
         }
@@ -1681,100 +1798,72 @@
             };
 
             const formFields = document.getElementById('formFields');
-            const value = (field) => newProduct[field] || '';
+            formFields.innerHTML = Object.keys(newProduct).map(field => {
+                if (field === 'handleId' || field === 'fieldType') {
+                    return `<input type="hidden" name="${field}" value="${newProduct[field]}">`;
+                }
 
-            formFields.innerHTML = `
-                <input type="hidden" name="handleId" value="${newProduct.handleId}">
-                <input type="hidden" name="fieldType" value="${newProduct.fieldType}">
+                if (field === 'productImageUrl') {
+                    return `
+                        <div class="form-group">
+                            <label>Product Image</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="text" name="${field}" id="imageUrlInput" value="${newProduct[field]}" placeholder="Image URL or filename" style="flex: 1;">
+                                <input type="file" id="imageFileInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+                                <button type="button" onclick="document.getElementById('imageFileInput').click()" style="background: #9b59b6; white-space: nowrap;">
+                                    Choose Image
+                                </button>
+                            </div>
+                            <small style="color: #888; font-size: 0.85em;">Upload an image or enter a URL/filename</small>
+                        </div>
+                    `;
+                }
 
-                <div class="form-section">
-                    <div class="form-section-title">Basic Information</div>
-                    <div class="form-grid">
-                        <div class="form-group form-grid-full">
-                            <label>Product Name</label>
-                            <input type="text" name="name" value="" placeholder="Enter product name" required>
-                        </div>
-                        <div class="form-group">
-                            <label>SKU</label>
-                            <input type="text" name="sku" value="" placeholder="Product SKU">
-                        </div>
-                        <div class="form-group">
-                            <label>Brand</label>
-                            <input type="text" name="brand" value="${value('brand')}" placeholder="Brand name">
-                        </div>
-                        <div class="form-group">
-                            <label>Category</label>
-                            <input type="text" name="collection" value="" placeholder="Product category">
-                        </div>
-                        <div class="form-group">
-                            <label>Ribbon</label>
-                            <input type="text" name="ribbon" value="" placeholder="e.g., New, Sale, Best Seller">
-                            <small>Optional badge to display on product</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <div class="form-section-title">Product Image</div>
-                    <div class="form-group">
-                        <label>Image</label>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="text" name="productImageUrl" id="imageUrlInput" value="" placeholder="Image URL or filename" style="flex: 1;">
-                            <input type="file" id="imageFileInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
-                            <button type="button" onclick="document.getElementById('imageFileInput').click()">
-                                📁 Choose Image
-                            </button>
-                        </div>
-                        <small>Upload an image or enter a Wix media URL</small>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <div class="form-section-title">Pricing & Inventory</div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Price ($)</label>
-                            <input type="number" name="price" value="" step="0.01" min="0" placeholder="0.00" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Cost ($)</label>
-                            <input type="number" name="cost" value="" step="0.01" min="0" placeholder="0.00">
-                            <small>Your cost for this item</small>
-                        </div>
+                if (field === 'discountMode') {
+                    return `
                         <div class="form-group">
                             <label>Discount Type</label>
-                            <select name="discountMode">
-                                <option value="AMOUNT" selected>💵 Fixed Amount ($)</option>
-                                <option value="PERCENT">📊 Percentage (%)</option>
+                            <select name="${field}">
+                                <option value="AMOUNT" selected>Fixed Amount ($)</option>
+                                <option value="PERCENT">Percentage (%)</option>
                             </select>
                         </div>
+                    `;
+                }
+
+                if (field === 'discountValue') {
+                    return `
                         <div class="form-group">
                             <label>Discount Value</label>
-                            <input type="number" name="discountValue" value="" step="0.01" min="0" placeholder="0.00">
-                            <small>Leave empty for no discount</small>
+                            <input type="number" name="${field}" value="${newProduct[field]}" step="0.01" min="0" placeholder="Enter discount amount or %">
+                            <small style="color: #888; font-size: 0.85em;">Leave empty for no discount</small>
                         </div>
-                        <div class="form-group">
-                            <label>Stock Quantity</label>
-                            <input type="number" name="inventory" value="0" step="1" min="0" placeholder="0">
-                        </div>
-                        <div class="form-group">
-                            <label>Weight (lbs)</label>
-                            <input type="number" name="weight" value="" step="0.01" min="0" placeholder="0.00">
-                        </div>
-                    </div>
-                </div>
+                    `;
+                }
 
-                <div class="form-section">
-                    <div class="form-section-title">Visibility</div>
-                    <div class="form-group">
-                        <label>Product Status</label>
-                        <select name="visible">
-                            <option value="TRUE" selected>✅ Visible (Show on store)</option>
-                            <option value="FALSE">🔒 Hidden (Not visible to customers)</option>
-                        </select>
-                    </div>
-                </div>
-            `;
+                if (field === 'visible') {
+                    return `
+                        <div class="form-group">
+                            <label>${field}</label>
+                            <select name="${field}">
+                                <option value="TRUE" selected>Visible</option>
+                                <option value="FALSE">Hidden</option>
+                            </select>
+                        </div>
+                    `;
+                } else {
+                    const inputType = ['price', 'cost', 'weight'].includes(field) ? 'number' :
+                                     field === 'inventory' ? 'number' : 'text';
+                    const step = ['price', 'cost', 'weight'].includes(field) ? '0.01' : '1';
+
+                    return `
+                        <div class="form-group">
+                            <label>${field}</label>
+                            <input type="${inputType}" name="${field}" value="${newProduct[field]}" ${inputType === 'number' ? `step="${step}"` : ''}>
+                        </div>
+                    `;
+                }
+            }).join('');
 
             document.getElementById('editModal').classList.add('active');
         }
@@ -1867,14 +1956,14 @@
         }
 
         // Import products from Wix
-        async function importFromWix() {
+        async function importFromWix(skipConfirm = false) {
             if (!wixConfig.connected) {
                 showNotification('Please configure Wix API settings first', 'error');
                 openWixSettings();
                 return;
             }
 
-            if (!confirm('This will replace your current inventory with products from Wix. Continue?')) {
+            if (!skipConfirm && !confirm('This will replace your current inventory with products from Wix. Continue?')) {
                 return;
             }
 
@@ -2141,9 +2230,33 @@
             showNotification('CSV exported successfully', 'success');
         }
 
-        window.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('DOMContentLoaded', async function() {
             loadWixConfig();
             renderTable();
+
+            // Debug: Check Wix config status
+            console.log('Wix Config:', {
+                connected: wixConfig.connected,
+                hasSiteId: !!wixConfig.siteId,
+                hasApiKey: !!wixConfig.apiKey,
+                hasAccountId: !!wixConfig.accountId
+            });
+
+            // Auto-import from Wix if connected
+            if (wixConfig.connected && wixConfig.siteId && wixConfig.apiKey && wixConfig.accountId) {
+                console.log('Auto-importing from Wix...');
+                showNotification('Auto-importing products from Wix...', 'info');
+
+                // Wait a moment for the UI to render
+                setTimeout(async () => {
+                    try {
+                        await importFromWix(true);
+                    } catch (error) {
+                        console.error('Auto-import failed:', error);
+                        showNotification('Auto-import failed. Click "Import from Wix" to try again.', 'error');
+                    }
+                }, 500);
+            }
         });
     </script>
 </body>

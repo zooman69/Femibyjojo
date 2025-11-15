@@ -6,10 +6,17 @@
     "dev": "vercel dev",
     "deploy": "vercel --prod"
   },
-  "keywords": ["inventory", "wix", "e-commerce"],
+  "keywords": [
+    "inventory",
+    "wix",
+    "e-commerce"
+  ],
   "author": "Femi By Jojo",
   "license": "ISC",
   "devDependencies": {
     "vercel": "^33.0.0"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
   }
 }
