@@ -816,9 +816,129 @@
             }
         }
 
+    
+        /* Authentication Modal */
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .auth-modal {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 25px 70px rgba(0, 217, 255, 0.4);
+            border: 2px solid #00d9ff;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .auth-modal h2 {
+            color: #00d9ff;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .auth-modal p {
+            color: #a0a0a0;
+            margin-bottom: 30px;
+        }
+
+        .auth-form .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .auth-form label {
+            display: block;
+            color: #00d9ff;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .auth-form input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #2a2a2a;
+            border-radius: 10px;
+            background: #252525;
+            color: #e0e0e0;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .auth-form input:focus {
+            outline: none;
+            border-color: #00d9ff;
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.2);
+        }
+
+        .auth-form button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #00d9ff, #00ffaa);
+            border: none;
+            border-radius: 10px;
+            color: #0f0f0f;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .auth-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 217, 255, 0.5);
+        }
+
+        .auth-error {
+            color: #ff6b6b;
+            margin-top: 15px;
+            display: none;
+            font-weight: 600;
+        }
+
+        .auth-logo {
+            width: 120px;
+            margin-bottom: 20px;
+            filter: brightness(0) invert(1);
+        }
+
     </style>
 </head>
 <body>
+    <!-- Authentication Modal -->
+    <div id="authOverlay" class="auth-overlay">
+        <div class="auth-modal">
+            <img src="https://static.wixstatic.com/media/ca757a_259168483bd74b31b0ca3ea1475b4ed3~mv2.png" alt="Femi By Jojo" class="auth-logo">
+            <h2>Femi By Jojo</h2>
+            <p>Inventory Manager - Secure Access</p>
+            <form class="auth-form" onsubmit="return checkAuth(event)">
+                <div class="form-group">
+                    <label for="authUsername">Username</label>
+                    <input type="text" id="authUsername" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="authPassword">Password</label>
+                    <input type="password" id="authPassword" required autocomplete="current-password">
+                </div>
+                <button type="submit">Login</button>
+                <div class="auth-error" id="authError">Invalid username or password</div>
+            </form>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <div class="header-content">
@@ -2258,6 +2378,61 @@
                 }, 500);
             }
         });
+    
+
+        // Authentication System
+        const AUTH_CREDENTIALS = [
+            { username: 'admin', passwordHash: '2eb9771b' },
+            { username: 'Jojo', passwordHash: '29c5f3e4' },
+            { username: 'zooman', passwordHash: '2eb9769f' }
+        ];
+
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash).toString(16);
+        }
+
+        function checkAuth(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('authUsername').value;
+            const password = document.getElementById('authPassword').value;
+            const passwordHash = simpleHash(password);
+
+            // Check if credentials match any user
+            const validUser = AUTH_CREDENTIALS.find(user =>
+                user.username === username && user.passwordHash === passwordHash
+            );
+
+            if (validUser) {
+                // Store authentication in session
+                sessionStorage.setItem('authenticated', 'true');
+                document.getElementById('authOverlay').style.display = 'none';
+                showNotification('Login successful! Welcome back.', 'success');
+            } else {
+                document.getElementById('authError').style.display = 'block';
+                document.getElementById('authPassword').value = '';
+                setTimeout(() => {
+                    document.getElementById('authError').style.display = 'none';
+                }, 3000);
+            }
+            
+            return false;
+        }
+
+        // Check authentication on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            // Check if already authenticated in this session
+            if (sessionStorage.getItem('authenticated') === 'true') {
+                document.getElementById('authOverlay').style.display = 'none';
+            }
+        });
+
     </script>
 </body>
 </html>
