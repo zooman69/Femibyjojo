@@ -1443,7 +1443,9 @@
                             paging: {
                                 limit: limit,
                                 offset: offset
-                            }
+                            },
+                            // Include all product fields including price details
+                            includeVariants: true
                         }
                     };
 
@@ -1485,34 +1487,57 @@
                         imageUrl = match ? match[1] : fullUrl.split('/').pop().split('?')[0];
                     }
 
-                    // Extract discount information
+                    // Extract discount information - check multiple possible locations
                     let discountMode = 'AMOUNT';
                     let discountValue = '';
 
-                    // Check for discount in priceData
-                    if (wixProduct.priceData?.discounted === true && wixProduct.priceData?.discountedPrice !== undefined) {
+                    // Method 1: Check priceData.formatted.discountedPrice (most common)
+                    if (wixProduct.priceData?.formatted?.discountedPrice &&
+                        wixProduct.priceData?.formatted?.price) {
                         const originalPrice = parseFloat(wixProduct.priceData.price) || 0;
                         const discountedPrice = parseFloat(wixProduct.priceData.discountedPrice) || 0;
 
-                        if (discountedPrice < originalPrice) {
+                        if (discountedPrice > 0 && discountedPrice < originalPrice) {
                             discountMode = 'AMOUNT';
                             discountValue = (originalPrice - discountedPrice).toFixed(2);
-
-                            // Log products with discounts
-                            console.log(`Product "${wixProduct.name}" has discount: $${discountValue}`);
+                            console.log(`✓ Product "${wixProduct.name}" has $${discountValue} discount (from formatted prices)`);
                         }
                     }
 
-                    // Alternative: Check discount object
-                    if (wixProduct.discount) {
+                    // Method 2: Check direct priceData.discountedPrice
+                    else if (wixProduct.priceData?.discountedPrice && wixProduct.priceData?.price) {
+                        const originalPrice = parseFloat(wixProduct.priceData.price) || 0;
+                        const discountedPrice = parseFloat(wixProduct.priceData.discountedPrice) || 0;
+
+                        if (discountedPrice > 0 && discountedPrice < originalPrice) {
+                            discountMode = 'AMOUNT';
+                            discountValue = (originalPrice - discountedPrice).toFixed(2);
+                            console.log(`✓ Product "${wixProduct.name}" has $${discountValue} discount (from priceData)`);
+                        }
+                    }
+
+                    // Method 3: Check discount object
+                    else if (wixProduct.discount) {
                         if (wixProduct.discount.type === 'PERCENT') {
                             discountMode = 'PERCENT';
                             discountValue = wixProduct.discount.value || '';
-                            console.log(`Product "${wixProduct.name}" has ${discountValue}% discount`);
+                            console.log(`✓ Product "${wixProduct.name}" has ${discountValue}% discount (from discount object)`);
                         } else if (wixProduct.discount.type === 'AMOUNT') {
                             discountMode = 'AMOUNT';
                             discountValue = wixProduct.discount.value || '';
-                            console.log(`Product "${wixProduct.name}" has $${discountValue} discount`);
+                            console.log(`✓ Product "${wixProduct.name}" has $${discountValue} discount (from discount object)`);
+                        }
+                    }
+
+                    // Method 4: Check convertedPriceData for multi-currency stores
+                    else if (wixProduct.convertedPriceData?.discountedPrice && wixProduct.convertedPriceData?.price) {
+                        const originalPrice = parseFloat(wixProduct.convertedPriceData.price) || 0;
+                        const discountedPrice = parseFloat(wixProduct.convertedPriceData.discountedPrice) || 0;
+
+                        if (discountedPrice > 0 && discountedPrice < originalPrice) {
+                            discountMode = 'AMOUNT';
+                            discountValue = (originalPrice - discountedPrice).toFixed(2);
+                            console.log(`✓ Product "${wixProduct.name}" has $${discountValue} discount (from convertedPriceData)`);
                         }
                     }
 
