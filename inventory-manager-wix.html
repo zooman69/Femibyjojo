@@ -2697,8 +2697,8 @@
                           '&issuer=' + encodeURIComponent(issuer) +
                           '&algorithm=SHA1&digits=6&period=30';
 
-            // Use Google Charts API to generate QR code
-            return 'https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=' + encodeURIComponent(otpauth);
+            // Use QR Server API (free, no API key needed)
+            return 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(otpauth);
         }
 
         // Get or create 2FA secret for user
