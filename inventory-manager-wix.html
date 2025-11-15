@@ -910,9 +910,41 @@
                     wixProduct.sku = product.sku;
                 }
 
-                // Add collection if available
+                // Add collection if available - handle both collection names and IDs
                 if (product.collection) {
-                    wixProduct.collectionIds = [product.collection];
+                    // If collection looks like an ID (UUID format), use it directly
+                    // Otherwise, try to find collection by name or create it
+                    if (product.collection.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+                        wixProduct.collectionIds = [product.collection];
+                    } else {
+                        // Search for collection by name
+                        try {
+                            const collectionsResponse = await callWixAPI('/stores/v1/collections/query', 'POST', {
+                                query: {
+                                    filter: JSON.stringify({ name: product.collection })
+                                }
+                            });
+
+                            if (collectionsResponse.collections && collectionsResponse.collections.length > 0) {
+                                wixProduct.collectionIds = [collectionsResponse.collections[0].id];
+                            } else {
+                                // Create new collection if it doesn't exist
+                                const newCollection = await callWixAPI('/stores/v1/collections', 'POST', {
+                                    collection: {
+                                        name: product.collection,
+                                        visible: true
+                                    }
+                                });
+                                if (newCollection.collection && newCollection.collection.id) {
+                                    wixProduct.collectionIds = [newCollection.collection.id];
+                                    console.log(`Created new collection: ${product.collection} (${newCollection.collection.id})`);
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Collection handling error:', error);
+                            // Continue without collection if there's an error
+                        }
+                    }
                 }
 
                 // Add cost if available
@@ -1578,6 +1610,28 @@
             btn.textContent = 'Importing...';
 
             try {
+                // First, fetch all collections to map IDs to names
+                showNotification('Fetching collections...', 'info');
+                const collectionsMap = {};
+
+                try {
+                    const collectionsResponse = await callWixAPI('/stores/v1/collections/query', 'POST', {
+                        query: {
+                            paging: { limit: 100 }
+                        }
+                    });
+
+                    if (collectionsResponse.collections) {
+                        collectionsResponse.collections.forEach(collection => {
+                            collectionsMap[collection.id] = collection.name;
+                        });
+                        console.log('Collections loaded:', collectionsMap);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch collections:', error);
+                    // Continue without collection names
+                }
+
                 let allWixProducts = [];
                 let offset = 0;
                 let hasMore = true;
@@ -1690,12 +1744,19 @@
                         }
                     }
 
+                    // Get collection name from ID
+                    let collectionName = '';
+                    if (wixProduct.collectionIds && wixProduct.collectionIds.length > 0) {
+                        const collectionId = wixProduct.collectionIds[0];
+                        collectionName = collectionsMap[collectionId] || collectionId;
+                    }
+
                     return {
                         handleId: wixProduct.id || `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                         fieldType: 'Product',
                         name: wixProduct.name || '',
                         productImageUrl: imageUrl,
-                        collection: wixProduct.collectionIds?.[0] || '',
+                        collection: collectionName,
                         sku: wixProduct.sku || '',
                         ribbon: wixProduct.ribbon || '',
                         price: wixProduct.priceData?.price || '0',
