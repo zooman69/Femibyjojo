@@ -884,9 +884,26 @@
                     wixProduct.weight = parseFloat(product.weight) || 0;
                 }
 
-                // Find existing product by SKU or create new
+                // Find existing product - check handleId first (contains Wix product ID), then SKU
                 let productId = null;
-                if (product.sku) {
+
+                // Method 1: Check if handleId contains a Wix product ID (starts with alphanumeric pattern)
+                if (product.handleId && !product.handleId.startsWith('product_') && product.handleId.length > 10) {
+                    // handleId is likely a Wix product ID, verify it exists
+                    try {
+                        const existingProduct = await callWixAPI(`/stores/v1/products/${product.handleId}`, 'GET');
+                        if (existingProduct && existingProduct.product) {
+                            productId = product.handleId;
+                            console.log(`Found existing product by ID: ${product.name} (${productId})`);
+                        }
+                    } catch (error) {
+                        // Product ID not found, will try SKU search or create new
+                        console.log(`Product ID ${product.handleId} not found, searching by SKU...`);
+                    }
+                }
+
+                // Method 2: If not found by ID, search by SKU
+                if (!productId && product.sku) {
                     const searchData = await callWixAPI('/stores/v1/products/query', 'POST', {
                         query: {
                             filter: JSON.stringify({ sku: product.sku })
@@ -895,16 +912,23 @@
 
                     if (searchData.products && searchData.products.length > 0) {
                         productId = searchData.products[0].id;
+                        console.log(`Found existing product by SKU: ${product.name} (${productId})`);
                     }
                 }
 
                 // Update or create product
                 if (productId) {
                     // Update existing product
+                    console.log(`Updating product: ${product.name}`);
                     await callWixAPI(`/stores/v1/products/${productId}`, 'PATCH', { product: wixProduct });
                 } else {
                     // Create new product
-                    await callWixAPI('/stores/v1/products', 'POST', { product: wixProduct });
+                    console.log(`Creating new product: ${product.name}`);
+                    const result = await callWixAPI('/stores/v1/products', 'POST', { product: wixProduct });
+                    // Update handleId with the new Wix product ID for future syncs
+                    if (result.product && result.product.id) {
+                        product.handleId = result.product.id;
+                    }
                 }
 
                 product.syncStatus = 'synced';
