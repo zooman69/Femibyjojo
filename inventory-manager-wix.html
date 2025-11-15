@@ -836,6 +836,39 @@
             showNotification('Wix settings saved!', 'success');
         }
 
+        // Upload image to Wix
+        async function uploadImageToWix(file) {
+            if (!file) return null;
+
+            try {
+                // Convert file to base64
+                const base64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+
+                // Upload to Wix Media Manager
+                const uploadResult = await callWixAPI('/site-media/v1/files', 'POST', {
+                    file: {
+                        displayName: file.name,
+                        mimeType: file.type,
+                        url: `data:${file.type};base64,${base64}`
+                    }
+                });
+
+                if (uploadResult && uploadResult.file && uploadResult.file.id) {
+                    return uploadResult.file.id;
+                }
+
+                return null;
+            } catch (error) {
+                console.error('Image upload error:', error);
+                throw new Error(`Failed to upload image: ${error.message}`);
+            }
+        }
+
         // Sync product to Wix
         async function syncProductToWix(product, index) {
             if (!wixConfig.connected) {
@@ -845,6 +878,16 @@
             }
 
             try {
+                // Upload image if a file was selected
+                if (currentImageFile && index === currentEditIndex) {
+                    showNotification('Uploading image...', 'info');
+                    const imageId = await uploadImageToWix(currentImageFile);
+                    if (imageId) {
+                        product.productImageUrl = imageId;
+                        currentImageFile = null;
+                    }
+                }
+
                 // Map CSV product to Wix product format
                 const wixProduct = {
                     name: product.name,
@@ -882,6 +925,19 @@
                 // Add weight if available
                 if (product.weight) {
                     wixProduct.weight = parseFloat(product.weight) || 0;
+                }
+
+                // Add product image if available
+                if (product.productImageUrl) {
+                    wixProduct.media = {
+                        mainMedia: {
+                            image: {
+                                url: product.productImageUrl.startsWith('http')
+                                    ? product.productImageUrl
+                                    : `wix:image://v1/${product.productImageUrl}`
+                            }
+                        }
+                    };
                 }
 
                 // Find existing product - check handleId first (contains Wix product ID), then SKU
@@ -1292,15 +1348,32 @@
 
         function editProduct(index) {
             currentEditIndex = index;
+            currentImageFile = null;
             const product = allProducts[index];
 
             document.getElementById('modalTitle').textContent = 'Edit Product';
 
-            const importantFields = ['name', 'collection', 'sku', 'price', 'cost', 'inventory', 'visible', 'ribbon', 'weight', 'brand'];
+            const importantFields = ['name', 'productImageUrl', 'collection', 'sku', 'price', 'cost', 'inventory', 'visible', 'ribbon', 'weight', 'brand'];
 
             const formFields = document.getElementById('formFields');
             formFields.innerHTML = importantFields.map(field => {
                 const value = product[field] || '';
+
+                if (field === 'productImageUrl') {
+                    return `
+                        <div class="form-group">
+                            <label>Product Image</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="text" name="${field}" id="imageUrlInput" value="${value}" placeholder="Image URL or filename" style="flex: 1;">
+                                <input type="file" id="imageFileInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+                                <button type="button" onclick="document.getElementById('imageFileInput').click()" style="background: #9b59b6; white-space: nowrap;">
+                                    Choose Image
+                                </button>
+                            </div>
+                            <small style="color: #888; font-size: 0.85em;">Upload an image or enter a URL/filename</small>
+                        </div>
+                    `;
+                }
 
                 if (field === 'visible') {
                     return `
@@ -1329,14 +1402,18 @@
             document.getElementById('editModal').classList.add('active');
         }
 
+        let currentImageFile = null;
+
         function addNewProduct() {
             currentEditIndex = -1;
+            currentImageFile = null;
             document.getElementById('modalTitle').textContent = 'Add New Product';
 
             const newProduct = {
                 handleId: `product_${Date.now()}`,
                 fieldType: 'Product',
                 name: '',
+                productImageUrl: '',
                 collection: '',
                 sku: '',
                 price: '',
@@ -1352,6 +1429,22 @@
             formFields.innerHTML = Object.keys(newProduct).map(field => {
                 if (field === 'handleId' || field === 'fieldType') {
                     return `<input type="hidden" name="${field}" value="${newProduct[field]}">`;
+                }
+
+                if (field === 'productImageUrl') {
+                    return `
+                        <div class="form-group">
+                            <label>Product Image</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="text" name="${field}" id="imageUrlInput" value="${newProduct[field]}" placeholder="Image URL or filename" style="flex: 1;">
+                                <input type="file" id="imageFileInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+                                <button type="button" onclick="document.getElementById('imageFileInput').click()" style="background: #9b59b6; white-space: nowrap;">
+                                    Choose Image
+                                </button>
+                            </div>
+                            <small style="color: #888; font-size: 0.85em;">Upload an image or enter a URL/filename</small>
+                        </div>
+                    `;
                 }
 
                 if (field === 'visible') {
@@ -1379,6 +1472,15 @@
             }).join('');
 
             document.getElementById('editModal').classList.add('active');
+        }
+
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                currentImageFile = file;
+                document.getElementById('imageUrlInput').value = file.name;
+                showNotification(`Image selected: ${file.name}`, 'info');
+            }
         }
 
         function closeModal() {
