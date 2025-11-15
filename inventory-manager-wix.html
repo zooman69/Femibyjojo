@@ -460,7 +460,41 @@
             animation: slideIn 0.3s ease;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            padding-right: 45px;
         }
+        .notification-close {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .notification-close:hover {
+            opacity: 1;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .notification {
+            position: relative;
+            padding-right: 45px;
+        }
+
 
         @keyframes slideIn {
             from {
@@ -1275,12 +1309,20 @@
         // Show notification
         function showNotification(message, type = 'info') {
             const notification = document.getElementById('notification');
-            notification.textContent = message;
+            notification.innerHTML = message + '<button class="notification-close" onclick="closeNotification()">&times;</button>';
             notification.className = `notification ${type} show`;
 
-            setTimeout(() => {
-                notification.classList.remove('show');
+            // Auto-hide after 5 seconds
+            clearTimeout(window.notificationTimeout);
+            window.notificationTimeout = setTimeout(() => {
+                closeNotification();
             }, 5000);
+        }
+
+        function closeNotification() {
+            const notification = document.getElementById('notification');
+            notification.classList.remove('show');
+            clearTimeout(window.notificationTimeout);
         }
 
         // Open Wix settings
