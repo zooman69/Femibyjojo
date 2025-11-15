@@ -905,6 +905,23 @@
                     description: product.description || ''
                 };
 
+                // Add discount if available
+                if (product.discountValue && parseFloat(product.discountValue) > 0) {
+                    const discountValue = parseFloat(product.discountValue);
+                    if (product.discountMode === 'PERCENT') {
+                        wixProduct.discount = {
+                            type: 'PERCENT',
+                            value: discountValue
+                        };
+                    } else {
+                        wixProduct.discount = {
+                            type: 'AMOUNT',
+                            value: discountValue
+                        };
+                    }
+                    console.log(`Setting discount: ${product.discountMode} ${discountValue}`);
+                }
+
                 // Add SKU if available
                 if (product.sku) {
                     wixProduct.sku = product.sku;
@@ -1385,7 +1402,7 @@
 
             document.getElementById('modalTitle').textContent = 'Edit Product';
 
-            const importantFields = ['name', 'productImageUrl', 'collection', 'sku', 'price', 'cost', 'inventory', 'visible', 'ribbon', 'weight', 'brand'];
+            const importantFields = ['name', 'productImageUrl', 'collection', 'sku', 'price', 'discountMode', 'discountValue', 'cost', 'inventory', 'visible', 'ribbon', 'weight', 'brand'];
 
             const formFields = document.getElementById('formFields');
             formFields.innerHTML = importantFields.map(field => {
@@ -1403,6 +1420,28 @@
                                 </button>
                             </div>
                             <small style="color: #888; font-size: 0.85em;">Upload an image or enter a URL/filename</small>
+                        </div>
+                    `;
+                }
+
+                if (field === 'discountMode') {
+                    return `
+                        <div class="form-group">
+                            <label>Discount Type</label>
+                            <select name="${field}">
+                                <option value="AMOUNT" ${value === 'AMOUNT' || !value ? 'selected' : ''}>Fixed Amount ($)</option>
+                                <option value="PERCENT" ${value === 'PERCENT' ? 'selected' : ''}>Percentage (%)</option>
+                            </select>
+                        </div>
+                    `;
+                }
+
+                if (field === 'discountValue') {
+                    return `
+                        <div class="form-group">
+                            <label>Discount Value</label>
+                            <input type="number" name="${field}" value="${value}" step="0.01" min="0" placeholder="Enter discount amount or %">
+                            <small style="color: #888; font-size: 0.85em;">Leave empty for no discount</small>
                         </div>
                     `;
                 }
@@ -1449,6 +1488,8 @@
                 collection: '',
                 sku: '',
                 price: '',
+                discountMode: 'AMOUNT',
+                discountValue: '',
                 cost: '',
                 inventory: '0',
                 visible: 'TRUE',
@@ -1475,6 +1516,28 @@
                                 </button>
                             </div>
                             <small style="color: #888; font-size: 0.85em;">Upload an image or enter a URL/filename</small>
+                        </div>
+                    `;
+                }
+
+                if (field === 'discountMode') {
+                    return `
+                        <div class="form-group">
+                            <label>Discount Type</label>
+                            <select name="${field}">
+                                <option value="AMOUNT" selected>Fixed Amount ($)</option>
+                                <option value="PERCENT">Percentage (%)</option>
+                            </select>
+                        </div>
+                    `;
+                }
+
+                if (field === 'discountValue') {
+                    return `
+                        <div class="form-group">
+                            <label>Discount Value</label>
+                            <input type="number" name="${field}" value="${newProduct[field]}" step="0.01" min="0" placeholder="Enter discount amount or %">
+                            <small style="color: #888; font-size: 0.85em;">Leave empty for no discount</small>
                         </div>
                     `;
                 }
