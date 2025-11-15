@@ -1430,29 +1430,37 @@
 
             try {
                 let allWixProducts = [];
-                let cursor = null;
+                let offset = 0;
                 let hasMore = true;
+                const limit = 100;
+
+                showNotification('Fetching products from Wix...', 'info');
 
                 // Fetch all products from Wix (paginated)
                 while (hasMore) {
                     const query = {
                         query: {
-                            paging: { limit: 100 }
+                            paging: {
+                                limit: limit,
+                                offset: offset
+                            }
                         }
                     };
-
-                    if (cursor) {
-                        query.query.paging.cursor = cursor;
-                    }
 
                     const response = await callWixAPI('/stores/v1/products/query', 'POST', query);
 
                     if (response.products && response.products.length > 0) {
                         allWixProducts = allWixProducts.concat(response.products);
-                    }
+                        offset += response.products.length;
 
-                    cursor = response.pagingMetadata?.cursors?.next;
-                    hasMore = !!cursor;
+                        // Update button with progress
+                        btn.textContent = `Importing... (${allWixProducts.length} products)`;
+
+                        // Check if there are more products
+                        hasMore = response.products.length === limit;
+                    } else {
+                        hasMore = false;
+                    }
                 }
 
                 // Convert Wix products to CSV format
