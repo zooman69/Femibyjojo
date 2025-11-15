@@ -1286,7 +1286,7 @@
             }
 
             const headerRow = document.getElementById('tableHeader');
-            const displayColumns = ['select', 'productImageUrl', 'name', 'collection', 'sku', 'price', 'inventory', 'visible', 'syncStatus', 'actions'];
+            const displayColumns = ['select', 'productImageUrl', 'name', 'collection', 'sku', 'price', 'discountValue', 'inventory', 'visible', 'syncStatus', 'actions'];
             const columnLabels = {
                 'select': '☑',
                 'productImageUrl': 'Image',
@@ -1294,6 +1294,7 @@
                 'collection': 'Category',
                 'sku': 'SKU',
                 'price': 'Price',
+                'discountValue': 'Discount',
                 'inventory': 'Stock',
                 'visible': 'Status',
                 'syncStatus': 'Sync',
@@ -1326,6 +1327,17 @@
                     'error': 'Error'
                 }[syncStatusClass] || 'Unknown';
 
+                // Format discount display
+                let discountDisplay = '-';
+                if (product.discountValue && parseFloat(product.discountValue) > 0) {
+                    const discountVal = parseFloat(product.discountValue);
+                    if (product.discountMode === 'PERCENT') {
+                        discountDisplay = `${discountVal}%`;
+                    } else {
+                        discountDisplay = `$${discountVal.toFixed(2)}`;
+                    }
+                }
+
                 return `
                     <tr class="${product.syncStatus === 'syncing' ? 'syncing' : ''}">
                         <td><input type="checkbox" onchange="toggleProductSelection(${actualIndex}, this)" ${selectedProducts.has(actualIndex) ? 'checked' : ''}></td>
@@ -1336,6 +1348,7 @@
                         <td>${product.collection || '-'}</td>
                         <td>${product.sku || '-'}</td>
                         <td class="price">$${parseFloat(product.price || 0).toFixed(2)}</td>
+                        <td style="color: #e74c3c; font-weight: 500;">${discountDisplay}</td>
                         <td>${product.inventory || 0}</td>
                         <td><span class="visible-badge visible-${product.visible?.toLowerCase()}">${product.visible === 'TRUE' ? 'Visible' : 'Hidden'}</span></td>
                         <td><span class="sync-status ${syncStatusClass}">${syncStatusText}</span></td>
