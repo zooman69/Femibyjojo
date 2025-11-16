@@ -12,15 +12,21 @@ app.use(express.static(__dirname));
 // Import API handlers
 const wixProxyHandler = require('./api/wix-proxy.js');
 const sendSmsHandler = require('./api/send-sms.js');
+const sendTelegramHandler = require('./api/send-telegram.js');
 
 // API route for Wix proxy
 app.all('/api/wix-proxy', async (req, res) => {
     await wixProxyHandler(req, res);
 });
 
-// API route for SMS notifications
+// API route for SMS notifications (Twilio - paid)
 app.all('/api/send-sms', async (req, res) => {
     await sendSmsHandler(req, res);
+});
+
+// API route for Telegram notifications (free)
+app.all('/api/send-telegram', async (req, res) => {
+    await sendTelegramHandler(req, res);
 });
 
 // Serve the main HTML file

@@ -3049,7 +3049,8 @@
                     console.log('Could not fetch IP/location:', geoError);
                 }
 
-                const response = await fetch('/api/send-sms', {
+                // Send Telegram notification (free, unlimited)
+                const response = await fetch('/api/send-telegram', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -3065,9 +3066,9 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    console.log('Login SMS notification sent successfully');
+                    console.log('Login Telegram notification sent successfully');
                 } else {
-                    console.log('SMS notification not configured or failed:', data.message);
+                    console.log('Telegram notification not configured or failed:', data.message);
                 }
             } catch (error) {
                 console.error('Failed to send SMS notification:', error);
